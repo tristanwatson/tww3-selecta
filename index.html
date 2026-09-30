@@ -1,0 +1,655 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Faction Draw · Total War: Warhammer III</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600&family=Pirata+One&display=swap" rel="stylesheet">
+<style>
+:root{
+  --iron:#262a31; --plate:#30353d; --plate-2:#3a4049; --edge:#4b525d;
+  --brass:#c9a45c; --brass-dim:#8f7646; --bone:#ece6da; --ash:#a39e93;
+  --display:"Pirata One", "Old English Text MT", Georgia, serif;
+  --ui:"Barlow Semi Condensed", "Arial Narrow", system-ui, sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  min-height:100vh; color:var(--bone); font-family:var(--ui); font-size:17px; line-height:1.4;
+  background:radial-gradient(ellipse at 50% 25%, #30353e 0%, var(--iron) 65%) fixed, var(--iron);
+}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+
+.board{
+  display:grid; grid-template-columns:minmax(0,1fr) minmax(280px,380px) minmax(0,1fr);
+  gap:clamp(16px,3vw,48px); max-width:1400px; margin:0 auto; padding:28px 24px 12px;
+}
+.column{display:flex;flex-direction:column;gap:14px}
+
+/* ---------- centre ---------- */
+.altar{display:flex;flex-direction:column;align-items:center;gap:14px}
+.title{font-family:var(--display);font-weight:400;font-size:clamp(40px,4vw,54px);line-height:1;margin:0;color:var(--brass);letter-spacing:.01em}
+.subtitle{margin:-8px 0 4px;color:var(--ash);font-size:15px}
+.roll{
+  background:var(--brass); color:#231d12; border:0; border-radius:3px;
+  padding:12px 28px; font-weight:600; font-size:18px; cursor:pointer;
+  box-shadow:inset 0 -3px 0 var(--brass-dim);
+}
+.roll:hover{background:#d6b26b}
+.roll:active{transform:translateY(1px);box-shadow:inset 0 -1px 0 var(--brass-dim)}
+
+.dlc{position:relative;display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center}
+.dlc-label{color:var(--ash);font-size:15px}
+.dlc-btn{background:var(--plate);border:1px solid var(--edge);border-radius:3px;padding:6px 12px;cursor:pointer;display:flex;gap:10px;align-items:center}
+.dlc-btn::after{content:"";border:5px solid transparent;border-top-color:var(--ash);margin-top:5px}
+.dlc-panel{
+  position:absolute;top:calc(100% + 6px);left:50%;transform:translateX(-50%);z-index:20;
+  width:min(340px,90vw);max-height:60vh;overflow:auto;background:var(--plate);
+  border:1px solid var(--edge);border-radius:4px;padding:12px 14px;box-shadow:0 12px 30px rgba(0,0,0,.45);
+}
+.dlc-tools{display:flex;gap:8px;margin-bottom:8px}
+.dlc-panel fieldset{border:0;margin:0 0 10px;padding:0}
+.dlc-panel legend{font-family:var(--display);font-size:20px;color:var(--brass);padding:0;margin-bottom:2px}
+.dlc-panel label{display:flex;gap:8px;align-items:center;padding:3px 0;cursor:pointer}
+.dlc-panel .count{color:var(--ash);margin-left:auto;font-size:14px}
+input[type=checkbox]{accent-color:var(--brass);width:16px;height:16px}
+
+.card{
+  --c:var(--brass);
+  width:100%; min-height:340px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  text-align:center; padding:28px 22px; border-radius:6px;
+  background:linear-gradient(180deg, color-mix(in srgb, var(--c) 16%, var(--plate)) 0%, var(--plate) 55%);
+  border:1px solid color-mix(in srgb, var(--c) 55%, var(--edge));
+  box-shadow:inset 0 0 0 5px var(--plate), inset 0 0 0 6px color-mix(in srgb, var(--c) 35%, transparent);
+  user-select:none;
+}
+.card[data-drag]{cursor:grab;touch-action:none}
+.card.empty{background:transparent;border:1px dashed var(--edge);box-shadow:none;color:var(--ash)}
+.card.empty p{max-width:24ch;margin:0}
+.card-lord{font-family:var(--display);font-weight:400;font-size:clamp(34px,3.2vw,44px);line-height:1.05;margin:16px 0 6px}
+.card-race{margin:0;font-weight:600;font-size:19px;color:var(--c)}
+.card-pack{margin:4px 0 0;color:var(--ash);font-size:15px}
+.card.spinning .card-lord{opacity:.55}
+.card.landed{animation:land .38s cubic-bezier(.2,.9,.3,1.3)}
+@keyframes land{from{transform:scale(1.07);filter:brightness(1.35)}to{transform:none;filter:none}}
+.hint{margin:0;color:var(--ash);font-size:15px;text-align:center}
+
+.crest{
+  --c:var(--brass);
+  display:inline-grid;place-items:center;flex:none;width:40px;height:46px;
+  background:var(--c);color:var(--ink,#1d1b17);font-weight:600;font-size:15px;
+  clip-path:polygon(0 0,100% 0,100% 62%,50% 100%,0 62%);padding-bottom:8px;
+}
+.crest.big{width:84px;height:98px;font-size:28px;padding-bottom:16px}
+
+/* ---------- slots ---------- */
+.slot{
+  --team:transparent;
+  background:var(--plate); border:1px solid var(--edge); border-left:5px solid var(--team);
+  border-radius:4px; min-height:150px; display:flex; flex-direction:column; transition:border-color .15s, background .15s;
+}
+.slot:not(.teamed){border-left-width:1px}
+.slot.over{background:var(--plate-2);border-color:var(--brass)}
+.slot-head{display:flex;align-items:center;gap:8px;padding:10px 12px 0}
+.pnum{font-family:var(--display);font-size:26px;line-height:1;color:var(--brass);min-width:34px}
+.pname{flex:1;min-width:0;background:transparent;border:0;border-bottom:1px solid var(--edge);padding:3px 2px}
+.pname::placeholder{color:var(--ash)}
+.pname:focus{border-bottom-color:var(--brass);outline:none}
+.team{background:var(--plate-2);border:1px solid var(--edge);border-radius:3px;padding:2px 4px}
+.slot-body{flex:1;margin:10px 12px 12px;border-radius:3px}
+.slot-body.empty{
+  display:grid;place-items:center;background:transparent;border:1px dashed var(--edge);color:var(--ash);cursor:default;padding:10px;
+}
+.slot-body.empty:not(:disabled){cursor:pointer;color:var(--bone);border-color:var(--brass-dim)}
+.slot-body.empty:not(:disabled):hover{background:var(--plate-2)}
+.slot-body.filled{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.faction{display:flex;align-items:center;gap:12px;flex:1;min-width:180px;cursor:grab;touch-action:none;user-select:none}
+.faction .lord{font-family:var(--display);font-size:26px;line-height:1.05}
+.faction .meta{color:var(--ash);font-size:15px}
+.slot-actions{display:flex;gap:6px}
+.ghostbtn,.slot-actions button,.dlc-tools button,.actions button{
+  background:transparent;border:1px solid var(--edge);border-radius:3px;padding:4px 10px;cursor:pointer;font-size:15px;
+}
+.ghostbtn:hover,.slot-actions button:hover,.dlc-tools button:hover,.actions button:hover{border-color:var(--brass);color:var(--brass)}
+
+.lifted{opacity:.35}
+.ghost{position:fixed;left:0;top:0;z-index:50;pointer-events:none;opacity:.95;box-shadow:0 16px 40px rgba(0,0,0,.5);margin:0!important}
+body.dragging{cursor:grabbing}
+
+/* ---------- settings ---------- */
+.settings{max-width:1400px;margin:18px auto 40px;padding:0 24px}
+.tab{
+  display:inline-block;background:var(--plate);border:1px solid var(--edge);border-bottom:0;
+  border-radius:5px 5px 0 0;padding:6px 26px;font-weight:600;position:relative;top:1px;
+}
+.settings-body{
+  background:var(--plate);border:1px solid var(--edge);border-radius:0 4px 4px 4px;padding:18px 20px;
+  display:flex;flex-wrap:wrap;gap:18px 32px;align-items:center;
+}
+.field{display:flex;align-items:center;gap:10px}
+.field input{width:64px;background:var(--plate-2);border:1px solid var(--edge);border-radius:3px;padding:4px 8px}
+.check{display:flex;align-items:center;gap:8px;cursor:pointer}
+.actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-left:auto}
+#status{color:var(--brass);font-size:15px;min-width:5ch}
+
+@media (max-width:900px){
+  .board{grid-template-columns:1fr 1fr}
+  .altar{grid-column:1/-1;order:-1}
+  .card{min-height:260px}
+}
+@media (max-width:560px){
+  .board{grid-template-columns:1fr;padding:20px 14px 8px}
+  .settings{padding:0 14px}
+  .actions{margin-left:0}
+}
+@media (prefers-reduced-motion:reduce){
+  .card.landed{animation:none}
+  *{transition:none!important}
+}
+</style>
+</head>
+<body>
+
+<main class="board">
+  <section class="column" id="colLeft" aria-label="Players"></section>
+
+  <section class="altar">
+    <h1 class="title">Faction Draw</h1>
+    <p class="subtitle">Total War: Warhammer III</p>
+    <button id="rollBtn" class="roll">Draw a faction</button>
+    <div class="dlc">
+      <span class="dlc-label">DLC selection</span>
+      <button id="dlcBtn" class="dlc-btn" aria-expanded="false" aria-controls="dlcPanel"></button>
+      <div id="dlcPanel" class="dlc-panel" hidden>
+        <div class="dlc-tools">
+          <button type="button" data-dlc="all">Select all</button>
+          <button type="button" data-dlc="none">Clear all</button>
+        </div>
+        <div id="dlcGroups"></div>
+      </div>
+    </div>
+    <div id="card" class="card empty" aria-live="polite"></div>
+    <p class="hint">Drag the card onto a player, or click a player to place it. Drag between players to swap.</p>
+  </section>
+
+  <section class="column" id="colRight" aria-label="Players"></section>
+</main>
+
+<section class="settings">
+  <div class="tab" id="settingsTab">Settings</div>
+  <div class="settings-body" role="group" aria-labelledby="settingsTab">
+    <label class="field"><span>Number of players</span><input id="players" type="number" min="1" max="8"></label>
+    <label class="check"><input id="teams" type="checkbox"> Teams</label>
+    <label class="check"><input id="uniqueRace" type="checkbox"> One race per player</label>
+    <div class="actions">
+      <button type="button" id="fillBtn">Fill empty slots</button>
+      <button type="button" id="copyBtn">Copy results</button>
+      <button type="button" id="resetBtn">Clear all slots</button>
+      <span id="status" role="status"></span>
+    </div>
+  </div>
+</section>
+
+<script>
+/* =====================================================================
+   DATA — edit these lists when new DLC comes out.
+   ===================================================================== */
+const PACKS = [
+  { id:"wh3",      name:"Base game",                    game:"Warhammer III" },
+  { id:"ogres",    name:"Ogre Kingdoms",                game:"Warhammer III" },
+  { id:"coc",      name:"Champions of Chaos",           game:"Warhammer III" },
+  { id:"fcd",      name:"Forge of the Chaos Dwarfs",    game:"Warhammer III" },
+  { id:"soc",      name:"Shadows of Change",            game:"Warhammer III" },
+  { id:"tod",      name:"Thrones of Decay",             game:"Warhammer III" },
+  { id:"ood",      name:"Omens of Destruction",         game:"Warhammer III" },
+  { id:"tot",      name:"Tides of Torment",             game:"Warhammer III" },
+  { id:"bhashiva", name:"Bhashiva",                     game:"Warhammer III" },
+  { id:"lote",     name:"Lords of the End Times",       game:"Warhammer III" },
+  { id:"free3",    name:"Free update lords",            game:"Warhammer III" },
+  { id:"wh2",      name:"Base game and free lords",     game:"Warhammer II" },
+  { id:"tk",       name:"Rise of the Tomb Kings",       game:"Warhammer II" },
+  { id:"cvc",      name:"Curse of the Vampire Coast",   game:"Warhammer II" },
+  { id:"pw",       name:"The Prophet & the Warlock",    game:"Warhammer II" },
+  { id:"qc",       name:"The Queen & the Crone",        game:"Warhammer II" },
+  { id:"hb",       name:"The Hunter & the Beast",       game:"Warhammer II" },
+  { id:"sb",       name:"The Shadow & the Blade",       game:"Warhammer II" },
+  { id:"wp",       name:"The Warden & the Paunch",      game:"Warhammer II" },
+  { id:"tt",       name:"The Twisted & the Twilight",   game:"Warhammer II" },
+  { id:"sf",       name:"The Silence & the Fury",       game:"Warhammer II" },
+  { id:"wh1",      name:"Base game and free lords",     game:"Warhammer I" },
+  { id:"woc",      name:"Chaos Warriors",               game:"Warhammer I" },
+  { id:"cob",      name:"Call of the Beastmen",         game:"Warhammer I" },
+  { id:"rwe",      name:"Realm of the Wood Elves",      game:"Warhammer I" },
+  { id:"nor",      name:"Norsca",                       game:"Warhammer I" },
+  { id:"gg",       name:"The Grim & the Grave",         game:"Warhammer I" },
+  { id:"kw",       name:"The King & the Warlord",       game:"Warhammer I" },
+];
+
+// race: [crest letters, colour]
+const RACES = {
+  "The Empire":["EM","#d9b44a"], "Dwarfs":["DW","#c9803e"], "Greenskins":["GS","#78a83f"],
+  "Vampire Counts":["VC","#7d5fb0"], "Warriors of Chaos":["WC","#9aa0a8"], "Beastmen":["BM","#9a7646"],
+  "Wood Elves":["WE","#5b9a52"], "Bretonnia":["BR","#5584cc"], "Norsca":["NO","#7fb3c8"],
+  "High Elves":["HE","#e8e2d0"], "Dark Elves":["DE","#8a4fa0"], "Lizardmen":["LZ","#3fb095"],
+  "Skaven":["SK","#b09a3e"], "Tomb Kings":["TK","#dcc684"], "Vampire Coast":["VP","#4a9ea8"],
+  "Kislev":["KI","#b8d4e8"], "Grand Cathay":["GC","#d8573f"], "Khorne":["KH","#c4302f"],
+  "Nurgle":["NU","#95ad44"], "Tzeentch":["TZ","#4a7ddb"], "Slaanesh":["SL","#cc68b4"],
+  "Daemons of Chaos":["DC","#b0703a"], "Ogre Kingdoms":["OK","#c07a58"], "Chaos Dwarfs":["CD","#b04a36"],
+  "Undead Legions":["UL","#6e9480"],
+};
+
+// [legendary lord, race, pack id]
+const RAW = [
+  // Warhammer III
+  ["Tzarina Katarin","Kislev","wh3"], ["Kostaltyn","Kislev","wh3"], ["Boris Ursus","Kislev","wh3"],
+  ["Miao Ying","Grand Cathay","wh3"], ["Zhao Ming","Grand Cathay","wh3"],
+  ["Skarbrand","Khorne","wh3"], ["Ku'gath Plaguefather","Nurgle","wh3"],
+  ["Kairos Fateweaver","Tzeentch","wh3"], ["N'Kari","Slaanesh","wh3"], ["Daemon Prince","Daemons of Chaos","wh3"],
+  ["Greasus Goldtooth","Ogre Kingdoms","ogres"], ["Skrag the Slaughterer","Ogre Kingdoms","ogres"],
+  ["Azazel","Warriors of Chaos","coc"], ["Festus the Leechlord","Warriors of Chaos","coc"],
+  ["Valkia the Bloody","Warriors of Chaos","coc"], ["Vilitch the Curseling","Warriors of Chaos","coc"],
+  ["Drazhoath the Ashen","Chaos Dwarfs","fcd"], ["Zhatan the Black","Chaos Dwarfs","fcd"], ["Astragoth Ironhand","Chaos Dwarfs","fcd"],
+  ["Mother Ostankya","Kislev","soc"], ["Yuan Bo","Grand Cathay","soc"], ["The Changeling","Tzeentch","soc"],
+  ["Malakai Makaisson","Dwarfs","tod"], ["Elspeth von Draken","The Empire","tod"], ["Tamurkhan","Nurgle","tod"],
+  ["Gorbad Ironclaw","Greenskins","ood"], ["Golgfag Maneater","Ogre Kingdoms","ood"], ["Arbaal the Undefeated","Khorne","ood"],
+  ["Sea Lord Aislinn","High Elves","tot"], ["Dechala","Slaanesh","tot"], ["Sayl the Faithless","Norsca","tot"],
+  ["Bhashiva","Grand Cathay","bhashiva"],
+  ["Nagash","Undead Legions","lote"], ["Boris Todbringer","The Empire","lote"],
+  ["The Glottkin","Warriors of Chaos","lote"], ["Grey Seer Thanquol","Skaven","lote"],
+  ["Epidemius","Nurgle","free3"], ["The Masque","Slaanesh","free3"], ["Neferata","Vampire Counts","free3"],
+  ["Be'lakor","Warriors of Chaos","free3"], ["Thorek Ironbrow","Dwarfs","free3"],
+  // Warhammer II
+  ["Tyrion","High Elves","wh2"], ["Teclis","High Elves","wh2"], ["Alith Anar","High Elves","wh2"], ["Imrik","High Elves","wh2"],
+  ["Malekith","Dark Elves","wh2"], ["Morathi","Dark Elves","wh2"], ["Lokhir Fellheart","Dark Elves","wh2"], ["Rakarth","Dark Elves","wh2"],
+  ["Lord Mazdamundi","Lizardmen","wh2"], ["Kroq-Gar","Lizardmen","wh2"], ["Tiktaq'to","Lizardmen","wh2"], ["Gor-Rok","Lizardmen","wh2"],
+  ["Queek Headtaker","Skaven","wh2"], ["Lord Skrolk","Skaven","wh2"], ["Tretch Craventail","Skaven","wh2"],
+  ["Drycha","Wood Elves","wh2"], ["Repanse de Lyonesse","Bretonnia","wh2"], ["The Red Duke","Vampire Counts","wh2"],
+  ["Morghur","Beastmen","wh2"],
+  ["Settra the Imperishable","Tomb Kings","tk"], ["Arkhan the Black","Tomb Kings","tk"], ["Grand Hierophant Khatep","Tomb Kings","tk"], ["High Queen Khalida","Tomb Kings","tk"],
+  ["Luthor Harkon","Vampire Coast","cvc"], ["Count Noctilus","Vampire Coast","cvc"], ["Aranessa Saltspite","Vampire Coast","cvc"], ["Cylostra Direfin","Vampire Coast","cvc"],
+  ["Tehenhauin","Lizardmen","pw"], ["Ikit Claw","Skaven","pw"],
+  ["Alarielle the Radiant","High Elves","qc"], ["Hellebron","Dark Elves","qc"],
+  ["Markus Wulfhart","The Empire","hb"], ["Nakai the Wanderer","Lizardmen","hb"],
+  ["Malus Darkblade","Dark Elves","sb"], ["Deathmaster Snikch","Skaven","sb"],
+  ["Eltharion the Grim","High Elves","wp"], ["Grom the Paunch","Greenskins","wp"],
+  ["Throt the Unclean","Skaven","tt"], ["The Sisters of Twilight","Wood Elves","tt"],
+  ["Oxyotl","Lizardmen","sf"], ["Taurox the Brass Bull","Beastmen","sf"],
+  // Warhammer I
+  ["Karl Franz","The Empire","wh1"], ["Balthasar Gelt","The Empire","wh1"],
+  ["Thorgrim Grudgebearer","Dwarfs","wh1"], ["Ungrim Ironfist","Dwarfs","wh1"], ["Grombrindal","Dwarfs","wh1"],
+  ["Grimgor Ironhide","Greenskins","wh1"], ["Azhag the Slaughterer","Greenskins","wh1"], ["Wurrzag","Greenskins","wh1"],
+  ["Mannfred von Carstein","Vampire Counts","wh1"], ["Heinrich Kemmler","Vampire Counts","wh1"],
+  ["Vlad von Carstein","Vampire Counts","wh1"], ["Isabella von Carstein","Vampire Counts","wh1"],
+  ["Louen Leoncoeur","Bretonnia","wh1"], ["Alberic de Bordeleaux","Bretonnia","wh1"], ["The Fay Enchantress","Bretonnia","wh1"],
+  ["Archaon the Everchosen","Warriors of Chaos","woc"], ["Kholek Suneater","Warriors of Chaos","woc"], ["Prince Sigvald","Warriors of Chaos","woc"],
+  ["Khazrak One-Eye","Beastmen","cob"], ["Malagor the Dark Omen","Beastmen","cob"],
+  ["Orion","Wood Elves","rwe"], ["Durthu","Wood Elves","rwe"],
+  ["Wulfrik the Wanderer","Norsca","nor"], ["Throgg","Norsca","nor"],
+  ["Volkmar the Grim","The Empire","gg"], ["Helman Ghorst","Vampire Counts","gg"],
+  ["Belegar Ironhammer","Dwarfs","kw"], ["Skarsnik","Greenskins","kw"],
+];
+
+/* =====================================================================
+   STATE
+   ===================================================================== */
+const LORDS = RAW.map(([lord, race, pack]) => ({ lord, race, pack }));
+const BY_NAME = Object.fromEntries(LORDS.map(l => [l.lord, l]));
+const PACK_NAME = Object.fromEntries(PACKS.map(p => [p.id, p]));
+const TEAM_COLORS = ["#d06a4f", "#5b8fd1", "#6fae5a", "#b77ad0"];
+const KEY = "tww3-faction-draw-v1";
+const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+const defaults = () => ({
+  owned: PACKS.map(p => p.id), players: 8, teams: false, uniqueRace: false, current: null,
+  slots: Array.from({ length: 8 }, (_, i) => ({ name: "", team: i < 4 ? 1 : 2, lord: null })),
+});
+let state = load();
+let rolling = false;
+let suppressClick = false;
+
+function load() {
+  try {
+    const s = JSON.parse(localStorage.getItem(KEY));
+    if (s && Array.isArray(s.slots) && s.slots.length === 8) {
+      const merged = { ...defaults(), ...s };
+      // drop anything that no longer exists in the data
+      merged.slots.forEach(sl => { if (sl.lord && !BY_NAME[sl.lord]) sl.lord = null; });
+      if (merged.current && !BY_NAME[merged.current]) merged.current = null;
+      return merged;
+    }
+  } catch (e) {}
+  return defaults();
+}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+
+/* Lords that can still be drawn. */
+function pool({ ignoreSlot = -1, avoid = null, countCurrent = true } = {}) {
+  const owned = new Set(state.owned);
+  const used = state.slots.slice(0, state.players)
+    .filter((s, i) => i !== ignoreSlot && s.lord).map(s => s.lord);
+  if (countCurrent && state.current) used.push(state.current);
+  const usedSet = new Set(used);
+  const usedRaces = new Set(used.map(n => BY_NAME[n].race));
+  return LORDS.filter(l =>
+    owned.has(l.pack) && !usedSet.has(l.lord) && l.lord !== avoid &&
+    !(state.uniqueRace && usedRaces.has(l.race)));
+}
+const pickFrom = arr => arr[Math.floor(Math.random() * arr.length)];
+
+/* =====================================================================
+   RENDERING
+   ===================================================================== */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+function inkFor(hex) {
+  const n = parseInt(hex.slice(1), 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255;
+  return (0.299 * r + 0.587 * g + 0.114 * b) > 140 ? "#1d1b17" : "#f4efe4";
+}
+function crest(race, big = false) {
+  const [code, color] = RACES[race] || ["?", "#888888"];
+  return `<span class="crest${big ? " big" : ""}" style="--c:${color};--ink:${inkFor(color)}" aria-hidden="true">${code}</span>`;
+}
+
+function renderCard(show = null, spinning = false, landed = false) {
+  const card = $("#card");
+  const l = show || (state.current && BY_NAME[state.current]);
+  card.className = "card" + (l ? "" : " empty") + (spinning ? " spinning" : "") + (landed ? " landed" : "");
+  if (!l) {
+    card.removeAttribute("data-drag");
+    card.style.removeProperty("--c");
+    card.innerHTML = pool().length
+      ? `<p>Draw a faction, then drag it onto a player.</p>`
+      : `<p>Every faction in your selected DLC is already taken. Clear a slot or select more DLC.</p>`;
+    return;
+  }
+  if (spinning) card.removeAttribute("data-drag"); else card.dataset.drag = "roll";
+  card.style.setProperty("--c", RACES[l.race][1]);
+  card.innerHTML = `${crest(l.race, true)}
+    <h2 class="card-lord">${esc(l.lord)}</h2>
+    <p class="card-race">${esc(l.race)}</p>
+    <p class="card-pack">${esc(PACK_NAME[l.pack].game)}: ${esc(PACK_NAME[l.pack].name)}</p>`;
+}
+
+function slotEl(i) {
+  const s = state.slots[i];
+  const l = s.lord && BY_NAME[s.lord];
+  const el = document.createElement("article");
+  el.className = "slot" + (state.teams ? " teamed" : "");
+  el.dataset.slot = i;
+  if (state.teams) el.style.setProperty("--team", TEAM_COLORS[s.team - 1]);
+  const teamSelect = state.teams
+    ? `<select class="team" data-i="${i}" aria-label="Team for player ${i + 1}">
+        ${[1, 2, 3, 4].map(t => `<option value="${t}"${t === s.team ? " selected" : ""}>Team ${t}</option>`).join("")}
+       </select>` : "";
+  const body = l
+    ? `<div class="slot-body filled">
+         <div class="faction" data-drag="slot" data-from="${i}" title="Drag to another player to swap">
+           ${crest(l.race)}
+           <div><div class="lord">${esc(l.lord)}</div><div class="meta">${esc(l.race)}</div></div>
+         </div>
+         <div class="slot-actions">
+           <button type="button" data-act="reroll" data-i="${i}">Reroll</button>
+           <button type="button" data-act="clear" data-i="${i}">Clear</button>
+         </div>
+       </div>`
+    : `<button type="button" class="slot-body empty" data-act="place" data-i="${i}"${state.current && !rolling ? "" : " disabled"}>
+         ${state.current && !rolling ? `Place ${esc(state.current)} here` : "Drop a faction here"}
+       </button>`;
+  el.innerHTML = `
+    <header class="slot-head">
+      <span class="pnum">P${i + 1}</span>
+      <input class="pname" data-i="${i}" maxlength="24" placeholder="Player ${i + 1}"
+             aria-label="Name of player ${i + 1}" value="${esc(s.name)}">
+      ${teamSelect}
+    </header>${body}`;
+  return el;
+}
+
+function renderSlots() {
+  const left = $("#colLeft"), right = $("#colRight");
+  left.innerHTML = ""; right.innerHTML = "";
+  const leftCount = Math.ceil(state.players / 2);
+  for (let i = 0; i < state.players; i++) (i < leftCount ? left : right).appendChild(slotEl(i));
+}
+
+function renderDlc() {
+  const counts = {};
+  LORDS.forEach(l => counts[l.pack] = (counts[l.pack] || 0) + 1);
+  const owned = new Set(state.owned);
+  const games = [...new Set(PACKS.map(p => p.game))];
+  $("#dlcGroups").innerHTML = games.map(g => `
+    <fieldset><legend>${esc(g)}</legend>
+      ${PACKS.filter(p => p.game === g).map(p => `
+        <label><input type="checkbox" data-pack="${p.id}"${owned.has(p.id) ? " checked" : ""}>
+          ${esc(p.name)} <span class="count">${counts[p.id] || 0}</span></label>`).join("")}
+    </fieldset>`).join("");
+  updateDlcButton();
+}
+function updateDlcButton() {
+  $("#dlcBtn").textContent = `${state.owned.length} of ${PACKS.length} packs`;
+}
+
+function renderSettings() {
+  $("#players").value = state.players;
+  $("#teams").checked = state.teams;
+  $("#uniqueRace").checked = state.uniqueRace;
+}
+
+function renderAll() { renderCard(); renderSlots(); }
+
+/* =====================================================================
+   ACTIONS
+   ===================================================================== */
+function roll() {
+  if (rolling) return;
+  let p = pool({ avoid: state.current, countCurrent: false });
+  if (!p.length) p = pool({ countCurrent: false });
+  if (!p.length) { state.current = null; save(); renderAll(); return; }
+  const pick = pickFrom(p);
+  if (reducedMotion || p.length === 1) {
+    state.current = pick.lord; save(); renderAll(); return;
+  }
+  rolling = true;
+  state.current = null;
+  renderSlots();
+  let ticks = 0;
+  const iv = setInterval(() => {
+    renderCard(pickFrom(p), true);
+    if (++ticks >= 14) {
+      clearInterval(iv);
+      rolling = false;
+      state.current = pick.lord;
+      save();
+      renderCard(null, false, true);
+      renderSlots();
+    }
+  }, 55);
+}
+
+function placeCurrent(i) {
+  if (!state.current || rolling) return;
+  state.slots[i].lord = state.current;
+  state.current = null;
+  save(); renderAll();
+}
+
+function swap(a, b) {
+  const t = state.slots[a].lord;
+  state.slots[a].lord = state.slots[b].lord;
+  state.slots[b].lord = t;
+  save(); renderAll();
+}
+
+function reroll(i) {
+  const s = state.slots[i];
+  let p = pool({ ignoreSlot: i, avoid: s.lord });
+  if (!p.length) return flash("No other factions available");
+  s.lord = pickFrom(p).lord;
+  save(); renderAll();
+}
+
+function fillEmpty() {
+  let filled = 0;
+  for (let i = 0; i < state.players; i++) {
+    if (state.slots[i].lord) continue;
+    const p = pool();
+    if (!p.length) break;
+    state.slots[i].lord = pickFrom(p).lord;
+    filled++;
+  }
+  save(); renderAll();
+  if (!filled) flash("Nothing to fill");
+}
+
+function copyResults() {
+  const rows = state.slots.slice(0, state.players).map((s, i) => ({ ...s, i }));
+  if (state.teams) rows.sort((a, b) => a.team - b.team || a.i - b.i);
+  const lines = rows.map(s => {
+    const who = s.name.trim() || `Player ${s.i + 1}`;
+    const team = state.teams ? ` (Team ${s.team})` : "";
+    const l = s.lord && BY_NAME[s.lord];
+    return `${who}${team}: ${l ? `${l.lord}, ${l.race}` : "no faction yet"}`;
+  });
+  const text = lines.join("\n");
+  const done = () => flash("Copied");
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(done, () => fallbackCopy(text, done));
+  } else fallbackCopy(text, done);
+}
+function fallbackCopy(text, done) {
+  const ta = document.createElement("textarea");
+  ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand("copy"); done(); } catch (e) { flash("Copy failed"); }
+  ta.remove();
+}
+
+let flashTimer;
+function flash(msg) {
+  const s = $("#status");
+  s.textContent = msg;
+  clearTimeout(flashTimer);
+  flashTimer = setTimeout(() => s.textContent = "", 2000);
+}
+
+/* =====================================================================
+   EVENTS
+   ===================================================================== */
+$("#rollBtn").addEventListener("click", roll);
+$("#fillBtn").addEventListener("click", fillEmpty);
+$("#copyBtn").addEventListener("click", copyResults);
+$("#resetBtn").addEventListener("click", () => {
+  state.slots.forEach(s => s.lord = null);
+  state.current = null;
+  save(); renderAll();
+});
+
+document.addEventListener("click", e => {
+  if (suppressClick) return;
+  const b = e.target.closest("[data-act]");
+  if (!b) return;
+  const i = +b.dataset.i;
+  if (b.dataset.act === "place") placeCurrent(i);
+  if (b.dataset.act === "reroll") reroll(i);
+  if (b.dataset.act === "clear") { state.slots[i].lord = null; save(); renderAll(); }
+});
+
+document.addEventListener("input", e => {
+  if (e.target.matches(".pname")) { state.slots[+e.target.dataset.i].name = e.target.value; save(); }
+});
+document.addEventListener("change", e => {
+  const t = e.target;
+  if (t.matches(".team")) { state.slots[+t.dataset.i].team = +t.value; save(); renderSlots(); }
+  if (t.matches("[data-pack]")) {
+    const set = new Set(state.owned);
+    t.checked ? set.add(t.dataset.pack) : set.delete(t.dataset.pack);
+    state.owned = PACKS.map(p => p.id).filter(id => set.has(id));
+    save(); updateDlcButton(); renderCard();
+  }
+});
+
+$("#players").addEventListener("change", e => {
+  const n = Math.min(8, Math.max(1, parseInt(e.target.value, 10) || 1));
+  e.target.value = n; state.players = n; save(); renderAll();
+});
+$("#teams").addEventListener("change", e => { state.teams = e.target.checked; save(); renderSlots(); });
+$("#uniqueRace").addEventListener("change", e => { state.uniqueRace = e.target.checked; save(); renderCard(); });
+
+// DLC dropdown
+const dlcBtn = $("#dlcBtn"), dlcPanel = $("#dlcPanel");
+function setDlcOpen(open) { dlcPanel.hidden = !open; dlcBtn.setAttribute("aria-expanded", open); }
+dlcBtn.addEventListener("click", () => setDlcOpen(dlcPanel.hidden));
+document.addEventListener("click", e => {
+  if (!dlcPanel.hidden && !e.target.closest(".dlc")) setDlcOpen(false);
+});
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && !dlcPanel.hidden) { setDlcOpen(false); dlcBtn.focus(); }
+});
+dlcPanel.addEventListener("click", e => {
+  const b = e.target.closest("[data-dlc]");
+  if (!b) return;
+  state.owned = b.dataset.dlc === "all" ? PACKS.map(p => p.id) : [];
+  save(); renderDlc(); renderCard();
+});
+
+/* Drag and drop with pointer events, so it works with mouse and touch. */
+let drag = null;
+function slotAt(x, y) {
+  const el = document.elementFromPoint(x, y);
+  return el && el.closest(".slot");
+}
+document.addEventListener("pointerdown", e => {
+  if (e.button !== 0) return;
+  const src = e.target.closest("[data-drag]");
+  if (!src || e.target.closest("button, input, select")) return;
+  drag = { src, kind: src.dataset.drag, from: +src.dataset.from, x0: e.clientX, y0: e.clientY, ghost: null, ox: 0, oy: 0 };
+});
+document.addEventListener("pointermove", e => {
+  if (!drag) return;
+  if (!drag.ghost) {
+    if (Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) < 6) return;
+    const r = drag.src.getBoundingClientRect();
+    const g = drag.src.cloneNode(true);
+    g.removeAttribute("id"); g.removeAttribute("aria-live");
+    g.classList.remove("landed"); g.classList.add("ghost");
+    g.style.width = r.width + "px"; g.style.height = r.height + "px";
+    drag.ox = drag.x0 - r.left; drag.oy = drag.y0 - r.top;
+    document.body.appendChild(g);
+    drag.ghost = g;
+    drag.src.classList.add("lifted");
+    document.body.classList.add("dragging");
+  }
+  drag.ghost.style.transform = `translate(${e.clientX - drag.ox}px, ${e.clientY - drag.oy}px) rotate(-2deg)`;
+  const over = slotAt(e.clientX, e.clientY);
+  document.querySelectorAll(".slot.over").forEach(s => s !== over && s.classList.remove("over"));
+  if (over) over.classList.add("over");
+});
+function endDrag(e, cancelled) {
+  if (!drag) return;
+  const d = drag; drag = null;
+  if (!d.ghost) return;
+  d.ghost.remove();
+  d.src.classList.remove("lifted");
+  document.body.classList.remove("dragging");
+  document.querySelectorAll(".slot.over").forEach(s => s.classList.remove("over"));
+  suppressClick = true; setTimeout(() => suppressClick = false, 0);
+  if (cancelled) return;
+  const target = slotAt(e.clientX, e.clientY);
+  if (!target) return;
+  const i = +target.dataset.slot;
+  if (d.kind === "roll") placeCurrent(i);
+  else if (d.from !== i) swap(d.from, i);
+}
+document.addEventListener("pointerup", e => endDrag(e, false));
+document.addEventListener("pointercancel", e => endDrag(e, true));
+
+/* Go */
+renderSettings();
+renderDlc();
+renderAll();
+</script>
+</body>
+</html>
