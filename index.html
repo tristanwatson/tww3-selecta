@@ -10,7 +10,7 @@
 <style>
 :root{
   --iron:#262a31; --plate:#30353d; --plate-2:#3a4049; --edge:#4b525d;
-  --brass:#c9a45c; --brass-dim:#8f7646; --bone:#ece6da; --ash:#a39e93;
+  --brass:#c9a45c; --brass-dim:#8f7646; --bone:#ece6da; --ash:#a39e93; --danger:#d0553f;
   --display:"Pirata One", "Old English Text MT", Georgia, serif;
   --ui:"Barlow Semi Condensed", "Arial Narrow", system-ui, sans-serif;
 }
@@ -70,6 +70,7 @@ input[type=checkbox]{accent-color:var(--brass);width:16px;height:16px}
 .card.empty{background:transparent;border:1px dashed var(--edge);box-shadow:none;color:var(--ash)}
 .card.empty p{max-width:24ch;margin:0}
 .card-lord{font-family:var(--display);font-weight:400;font-size:clamp(34px,3.2vw,44px);line-height:1.05;margin:16px 0 6px}
+.card-faction{margin:0 0 8px;font-size:20px;font-style:italic;color:var(--bone)}
 .card-race{margin:0;font-weight:600;font-size:19px;color:var(--c)}
 .card-pack{margin:4px 0 0;color:var(--ash);font-size:15px}
 .card.spinning .card-lord{opacity:.55}
@@ -100,14 +101,20 @@ input[type=checkbox]{accent-color:var(--brass);width:16px;height:16px}
 .pname:focus{border-bottom-color:var(--brass);outline:none}
 .team{background:var(--plate-2);border:1px solid var(--edge);border-radius:3px;padding:2px 4px}
 .slot-body{flex:1;margin:10px 12px 12px;border-radius:3px}
-.slot-body.empty{
-  display:grid;place-items:center;background:transparent;border:1px dashed var(--edge);color:var(--ash);cursor:default;padding:10px;
+.slot-body.empty{display:flex;flex-direction:column;gap:8px}
+.drop{
+  flex:1;display:grid;place-items:center;background:transparent;border:1px dashed var(--edge);border-radius:3px;
+  color:var(--ash);cursor:default;padding:10px;min-height:52px;
 }
-.slot-body.empty:not(:disabled){cursor:pointer;color:var(--bone);border-color:var(--brass-dim)}
-.slot-body.empty:not(:disabled):hover{background:var(--plate-2)}
+.drop:not(:disabled){cursor:pointer;color:var(--bone);border-color:var(--brass-dim)}
+.drop:not(:disabled):hover{background:var(--plate-2)}
+.choose{width:100%;background:var(--plate-2);border:1px solid var(--edge);border-radius:3px;padding:5px 6px}
+.choosing{display:flex;gap:6px;align-items:center;width:100%}
+.choosing .choose{flex:1;min-width:0}
 .slot-body.filled{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .faction{display:flex;align-items:center;gap:12px;flex:1;min-width:180px;cursor:grab;touch-action:none;user-select:none}
 .faction .lord{font-family:var(--display);font-size:26px;line-height:1.05}
+.faction .fname{font-style:italic;font-size:16px;margin-top:2px}
 .faction .meta{color:var(--ash);font-size:15px}
 .slot-actions{display:flex;gap:6px}
 .ghostbtn,.slot-actions button,.dlc-tools button,.actions button{
@@ -132,8 +139,59 @@ body.dragging{cursor:grabbing}
 .field{display:flex;align-items:center;gap:10px}
 .field input{width:64px;background:var(--plate-2);border:1px solid var(--edge);border-radius:3px;padding:4px 8px}
 .check{display:flex;align-items:center;gap:8px;cursor:pointer}
+.seg-wrap{display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap}
 .actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-left:auto}
 #status{color:var(--brass);font-size:15px;min-width:5ch}
+
+/* ---------- victory conditions ---------- */
+.vc{width:100%;background:var(--plate);border:1px solid var(--edge);border-radius:4px;padding:12px 16px 4px}
+.vc-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.vc-title{margin:0;font-weight:600;font-size:16px}
+.vc-block{margin:8px 0 10px}
+.vc-block h3{font-family:var(--display);font-weight:400;font-size:21px;color:var(--brass);margin:0}
+.vc ul{margin:4px 0 0;padding-left:18px}
+.vc li{margin:2px 0}
+.vc .muted{color:var(--ash);margin:2px 0 0;font-size:15px}
+.targets{margin:6px 0 0;font-size:15px;color:var(--ash);display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.target{border:1px solid var(--edge);border-radius:3px;padding:1px 7px;color:var(--bone)}
+.target.live{border-color:#d9973f;color:#f0c07a}
+.target em{font-style:normal;color:var(--ash)}
+
+.slot.clash{border-color:var(--danger);border-left-color:var(--team);box-shadow:0 0 0 1px var(--danger)}
+.slot.clash:not(.teamed){border-left-color:var(--danger)}
+.note{margin:-4px 12px 10px;font-size:15px}
+.note + .note{margin-top:-6px}
+.note.clash{color:#ec8a74;font-weight:600}
+.note.rival{color:var(--ash)}
+
+/* ---------- map ---------- */
+.map-wrap{max-width:1400px;margin:10px auto 0;padding:0 24px}
+.map-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+.map-head h2{font-family:var(--display);font-weight:400;font-size:30px;line-height:1;color:var(--brass);margin:0}
+.picker{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;background:var(--plate);border:1px solid var(--edge);border-radius:4px;padding:10px 14px;margin-bottom:8px}
+.picker select{background:var(--plate-2);border:1px solid var(--edge);border-radius:3px;padding:3px 6px;max-width:260px;margin-left:6px}
+.picker .hint{flex-basis:100%;text-align:left}
+.picker[hidden]{display:none}
+#pickCount{color:var(--ash)}
+#pickStatus{color:var(--brass)}
+.map-frame{position:relative;background:var(--plate);border:1px solid var(--edge);border-radius:4px;overflow:hidden}
+.map-frame svg{display:block;width:100%;height:auto}
+.map-frame.picking svg{cursor:crosshair}
+.map-empty{position:absolute;inset:0;display:grid;place-items:center;margin:0;padding:20px;color:var(--ash);text-align:center;pointer-events:none}
+.map-empty[hidden]{display:none}
+.grid line{stroke:var(--edge);stroke-width:1;opacity:.6}
+.link{stroke-linecap:round}
+.link.clash{stroke:var(--danger)}
+.link.rival{stroke:var(--ash);stroke-dasharray:6 7;opacity:.75}
+.mark{cursor:pointer}
+.mark:focus{outline:none}
+.mark:focus-visible circle{stroke:var(--brass)}
+.mark text{text-anchor:middle;font-weight:600;font-family:var(--ui);pointer-events:none}
+.drawn{fill:none;stroke:var(--c);stroke-width:3;stroke-dasharray:5 4;animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.3}}
+.pickdot{fill:var(--c);opacity:.7}
+.pickdot.sel{opacity:1;stroke:var(--bone);stroke-width:2}
+.map-note{margin:6px 0 0;color:var(--ash);font-size:15px;min-height:1em}
 
 @media (max-width:900px){
   .board{grid-template-columns:1fr 1fr}
@@ -142,11 +200,11 @@ body.dragging{cursor:grabbing}
 }
 @media (max-width:560px){
   .board{grid-template-columns:1fr;padding:20px 14px 8px}
-  .settings{padding:0 14px}
+  .settings,.map-wrap{padding:0 14px}
   .actions{margin-left:0}
 }
 @media (prefers-reduced-motion:reduce){
-  .card.landed{animation:none}
+  .card.landed,.drawn{animation:none}
   *{transition:none!important}
 }
 </style>
@@ -172,16 +230,44 @@ body.dragging{cursor:grabbing}
       </div>
     </div>
     <div id="card" class="card empty" aria-live="polite"></div>
-    <p class="hint">Drag the card onto a player, or click a player to place it. Drag between players to swap.</p>
+    <section id="vc" class="vc" aria-live="polite" hidden></section>
+    <p class="hint">Drag the card onto a player, or click a player to place it. Drag between players to swap, or pick a faction from a player's dropdown. Click a player's faction to see its victory conditions.</p>
   </section>
 
   <section class="column" id="colRight" aria-label="Players"></section>
 </main>
 
+<section class="map-wrap" aria-labelledby="mapTitle" hidden>
+  <div class="map-head">
+    <h2 id="mapTitle">Start positions</h2>
+    <button type="button" id="pickToggle" class="ghostbtn" aria-expanded="false" aria-controls="picker">Pick start positions</button>
+  </div>
+  <div id="picker" class="picker" hidden>
+    <label>Lord <select id="pickLord"></select></label>
+    <label class="check"><input type="checkbox" id="pickMissing" checked> Only lords without a position</label>
+    <span id="pickCount"></span>
+    <button type="button" id="pickCopy" class="ghostbtn">Copy starts.js</button>
+    <button type="button" id="pickClear" class="ghostbtn">Discard picks</button>
+    <span id="pickStatus" role="status"></span>
+    <p class="hint">Click the map to set the selected lord's start. It moves on to the next lord automatically. When you're done, copy starts.js and paste it over the file in your repo.</p>
+  </div>
+  <div id="mapFrame" class="map-frame">
+    <svg id="map" role="img" aria-label="Map of player start positions"></svg>
+    <p id="mapEmpty" class="map-empty">No map yet. Save your traced map as map.svg next to index.html.</p>
+  </div>
+  <p id="mapNote" class="map-note"></p>
+</section>
+
 <section class="settings">
   <div class="tab" id="settingsTab">Settings</div>
   <div class="settings-body" role="group" aria-labelledby="settingsTab">
     <label class="field"><span>Number of players</span><input id="players" type="number" min="1" max="8"></label>
+    <div class="seg-wrap" role="group" aria-labelledby="sideLabel">
+      <span id="sideLabel">Draw from</span>
+      <label class="check"><input type="checkbox" name="side" value="order"> Order</label>
+      <label class="check"><input type="checkbox" name="side" value="chaos"> Chaos</label>
+      <label class="check"><input type="checkbox" name="side" value="other"> Other</label>
+    </div>
     <label class="check"><input id="teams" type="checkbox"> Teams</label>
     <label class="check"><input id="uniqueRace" type="checkbox"> One race per player</label>
     <div class="actions">
@@ -193,6 +279,8 @@ body.dragging{cursor:grabbing}
   </div>
 </section>
 
+<script src="conditions.js"></script>
+<script src="starts.js"></script>
 <script>
 /* =====================================================================
    DATA — edit these lists when new DLC comes out.
@@ -241,6 +329,16 @@ const RACES = {
   "Undead Legions":["UL","#6e9480"],
 };
 
+// Which side each race counts as for the Order / Chaos setting.
+// Races left out (undead, Skaven, Greenskins, etc.) count as "other".
+const ALIGNMENT = {
+  "The Empire":"order", "Dwarfs":"order", "High Elves":"order", "Bretonnia":"order",
+  "Wood Elves":"order", "Lizardmen":"order", "Kislev":"order", "Grand Cathay":"order",
+  "Khorne":"chaos", "Nurgle":"chaos", "Tzeentch":"chaos", "Slaanesh":"chaos",
+  "Daemons of Chaos":"chaos", "Warriors of Chaos":"chaos", "Norsca":"chaos",
+  "Beastmen":"chaos", "Chaos Dwarfs":"chaos",
+};
+
 // [legendary lord, race, pack id]
 const RAW = [
   // Warhammer III
@@ -254,24 +352,25 @@ const RAW = [
   ["Drazhoath the Ashen","Chaos Dwarfs","fcd"], ["Zhatan the Black","Chaos Dwarfs","fcd"], ["Astragoth Ironhand","Chaos Dwarfs","fcd"],
   ["Mother Ostankya","Kislev","soc"], ["Yuan Bo","Grand Cathay","soc"], ["The Changeling","Tzeentch","soc"],
   ["Malakai Makaisson","Dwarfs","tod"], ["Elspeth von Draken","The Empire","tod"], ["Tamurkhan","Nurgle","tod"],
-  ["Gorbad Ironclaw","Greenskins","ood"], ["Golgfag Maneater","Ogre Kingdoms","ood"], ["Arbaal the Undefeated","Khorne","ood"],
+  ["Gorbad Ironclaw","Greenskins","ood"], ["Golgfag Maneater","Ogre Kingdoms","ood"], ["Skulltaker","Khorne","ood"],
   ["Sea Lord Aislinn","High Elves","tot"], ["Dechala","Slaanesh","tot"], ["Sayl the Faithless","Norsca","tot"],
   ["Bhashiva","Grand Cathay","bhashiva"],
   ["Nagash","Undead Legions","lote"], ["Boris Todbringer","The Empire","lote"],
   ["The Glottkin","Warriors of Chaos","lote"], ["Grey Seer Thanquol","Skaven","lote"],
   ["Epidemius","Nurgle","free3"], ["The Masque","Slaanesh","free3"], ["Neferata","Vampire Counts","free3"],
-  ["Be'lakor","Warriors of Chaos","free3"], ["Thorek Ironbrow","Dwarfs","free3"],
+  ["Be'lakor","Warriors of Chaos","free3"],  ["Arbaal the Undefeated","Khorne","free3"],
   // Warhammer II
+             ["Thorek Ironbrow","Dwarfs","wh2"],
   ["Tyrion","High Elves","wh2"], ["Teclis","High Elves","wh2"], ["Alith Anar","High Elves","wh2"], ["Imrik","High Elves","wh2"],
   ["Malekith","Dark Elves","wh2"], ["Morathi","Dark Elves","wh2"], ["Lokhir Fellheart","Dark Elves","wh2"], ["Rakarth","Dark Elves","wh2"],
   ["Lord Mazdamundi","Lizardmen","wh2"], ["Kroq-Gar","Lizardmen","wh2"], ["Tiktaq'to","Lizardmen","wh2"], ["Gor-Rok","Lizardmen","wh2"],
   ["Queek Headtaker","Skaven","wh2"], ["Lord Skrolk","Skaven","wh2"], ["Tretch Craventail","Skaven","wh2"],
-  ["Drycha","Wood Elves","wh2"], ["Repanse de Lyonesse","Bretonnia","wh2"], ["The Red Duke","Vampire Counts","wh2"],
-  ["Morghur","Beastmen","wh2"],
+  ["Drycha","Wood Elves","wh2"], ["Repanse de Lyonesse","Bretonnia","wh2"], 
+  ["Morghur the Shadowgave","Beastmen","wh2"],
   ["Settra the Imperishable","Tomb Kings","tk"], ["Arkhan the Black","Tomb Kings","tk"], ["Grand Hierophant Khatep","Tomb Kings","tk"], ["High Queen Khalida","Tomb Kings","tk"],
   ["Luthor Harkon","Vampire Coast","cvc"], ["Count Noctilus","Vampire Coast","cvc"], ["Aranessa Saltspite","Vampire Coast","cvc"], ["Cylostra Direfin","Vampire Coast","cvc"],
   ["Tehenhauin","Lizardmen","pw"], ["Ikit Claw","Skaven","pw"],
-  ["Alarielle the Radiant","High Elves","qc"], ["Hellebron","Dark Elves","qc"],
+  ["Alarielle the Radiant","High Elves","qc"], ["Crone Hellebron","Dark Elves","qc"],
   ["Markus Wulfhart","The Empire","hb"], ["Nakai the Wanderer","Lizardmen","hb"],
   ["Malus Darkblade","Dark Elves","sb"], ["Deathmaster Snikch","Skaven","sb"],
   ["Eltharion the Grim","High Elves","wp"], ["Grom the Paunch","Greenskins","wp"],
@@ -280,7 +379,7 @@ const RAW = [
   // Warhammer I
   ["Karl Franz","The Empire","wh1"], ["Balthasar Gelt","The Empire","wh1"],
   ["Thorgrim Grudgebearer","Dwarfs","wh1"], ["Ungrim Ironfist","Dwarfs","wh1"], ["Grombrindal","Dwarfs","wh1"],
-  ["Grimgor Ironhide","Greenskins","wh1"], ["Azhag the Slaughterer","Greenskins","wh1"], ["Wurrzag","Greenskins","wh1"],
+  ["Grimgor Ironhide","Greenskins","wh1"], ["Azhag the Slaughterer","Greenskins","wh1"], ["Wurrzag Da Great Green Prophet","Greenskins","wh1"],
   ["Mannfred von Carstein","Vampire Counts","wh1"], ["Heinrich Kemmler","Vampire Counts","wh1"],
   ["Vlad von Carstein","Vampire Counts","wh1"], ["Isabella von Carstein","Vampire Counts","wh1"],
   ["Louen Leoncoeur","Bretonnia","wh1"], ["Alberic de Bordeleaux","Bretonnia","wh1"], ["The Fay Enchantress","Bretonnia","wh1"],
@@ -292,18 +391,202 @@ const RAW = [
   ["Belegar Ironhammer","Dwarfs","kw"], ["Skarsnik","Greenskins","kw"],
 ];
 
+// Faction name shown under each lord. Blank ones are still to be filled in.
+const FACTIONS = {
+    // Beastmen
+    "Khazrak One-Eye": "Warherd of the One-Eye",
+    "Malagor the Dark Omen": "Harbringer of Disaster",
+    "Morghur the Shadowgave": "Warherd of the Shadowgave",
+    "Taurox the Brass Bull": "Slaughterhorn Tribe",
+      // The Empire
+      "Karl Franz": "Reikland",
+      "Balthasar Gelt": "Golden Order",
+      "Volkmar the Grim": "Cult of Sigmar",
+      "Markus Wulfhart": "The Huntsmarshal's Expedition",
+      "Elspeth von Draken": "Wissenland & Nuln",
+      "Boris Todbringer": "Middenland",
+      // Dwarfs
+      "Thorgrim Grudgebearer": "Karaz-a-Karak",
+      "Ungrim Ironfist": "Karak Kadrin",
+      "Grombrindal": "The Ancestral Throng",
+      "Belegar Ironhammer": "Clan Angrund",
+      "Thorek Ironbrow": "Ironbrow's Expedition",
+      "Malakai Makaisson": "Masters of Innovation",
+      // Greenskins
+      "Grimgor Ironhide": "Grimgor's Ardboyz",
+      "Azhag the Slaughterer": "Bonerattlaz",
+      "Wurrzag Da Great Green Prophet": "The Bloody Handz",
+      "Skarsnik": "Crooked Moon",
+      "Grom the Paunch": "Broken Axe",
+      "Gorbad Ironclaw": "Ironclaw Orcs",
+      // Vampire Counts
+      "Mannfred von Carstein": "The Drakenhof Conclave",
+      "Heinrich Kemmler": "The Barrow Legion",
+      "Vlad von Carstein": "Sylvania",
+      "Isabella von Carstein": "Sylvania",
+      "Helman Ghorst": "Caravan of Blue Roses",
+      "Neferata": "The Lahmian Sisterhood",
+      // Warriors of Chaos
+      "Archaon the Everchosen": "Warhost of the Apocalypse",
+      "Kholek Suneater": "Heralds of the Tempest",
+      "Prince Sigvald": "The Decadent Host",
+      "Be'lakor": "Shadow Legion",
+      "Azazel": "The Ecstatic Legions",
+      "Festus the Leechlord": "The Fecundites",
+      "Valkia the Bloody": "Legion of the Gorequeen",
+      "Vilitch the Curseling": "Puppets of Misrule",
+      "The Glottkin": "Host of the Triplets",
+      // Wood Elves
+      "Orion": "Talsyn",
+      "Durthu": "Argwylon",
+      "Drycha": "Wargrove of Woe",
+      "The Sisters of Twilight": "Heralds of Ariel",
+      // Bretonnia
+      "Louen Leoncoeur": "Bretonnia",
+      "Alberic de Bordeleaux": "Bordeleaux Errant",
+      "The Fay Enchantress": "Carcassonne",
+      "Repanse de Lyonesse": "Chevaliers de Lyonesse",
+      // Norsca
+      "Wulfrik the Wanderer": "World Walkers",
+      "Throgg": "Wintertooth",
+      "Sayl the Faithless": "Dolgan",
+      // High Elves
+      "Tyrion": "Eataine",
+      "Teclis": "Order of Loremasters",
+      "Alarielle the Radiant": "Avelorn",
+      "Alith Anar": "Nagarythe",
+      "Imrik": "Knights of Caledor",
+      "Eltharion the Grim": "Yvresse",
+      "Sea Lord Aislinn": "High Elf Sea Patrol",
+      // Dark Elves
+      "Malekith": "Naggarond",
+      "Morathi": "Cult of Pleasure",
+      "Crone Hellebron": "Har Ganeth",
+      "Lokhir Fellheart": "The Blessed Dread",
+      "Malus Darkblade": "Hag Graef",
+      "Rakarth": "The Thousand Maws",
+      // Lizardmen
+      "Lord Mazdamundi": "Hexoatl",
+      "Kroq-Gar": "Last Defenders",
+      "Tehenhauin": "Cult of Sotek",
+      "Tiktaq'to": "Tlaqua",
+      "Gor-Rok": "Itza",
+      "Nakai the Wanderer": "Spirit of the Jungle",
+      "Oxyotl": "Ghosts of Pahuax",
+      // Skaven
+      "Queek Headtaker": "Clan Mors",
+      "Lord Skrolk": "Clan Pestilens",
+      "Tretch Craventail": "Clan Rictus",
+      "Ikit Claw": "Clan Skyre",
+      "Deathmaster Snikch": "Clan Eshin",
+      "Throt the Unclean": "Clan Moulder",
+      "Grey Seer Thanquol": "Clan Scruten",
+      // Tomb Kings
+      "Settra the Imperishable": "Khemri",
+      "Arkhan the Black": "Followers of Nagash",
+      "Grand Hierophant Khatep": "Exiles of Nehek",
+      "High Queen Khalida": "Court of Lybaras",
+      // Vampire Coast
+      "Luthor Harkon": "The Awakened",
+      "Count Noctilus": "The Dreadfleet",
+      "Aranessa Saltspite": "Pirates of Sartosa",
+      "Cylostra Direfin": "The Drowned",
+      // Kislev
+      "Tzarina Katarin": "The Ice Court",
+      "Kostaltyn": "The Great Orthodoxy",
+      "Boris Ursus": "Ursun Revivalists",
+      "Mother Ostankya": "Daughters of the Forest",
+      // Grand Cathay
+      "Miao Ying": "The Northern Provinces",
+      "Zhao Ming": "The Western Provinces",
+      "Yuan Bo": "The Jade Court",
+      "Bhashiva": "Claws of the White Tiger",
+      // Khorne
+      "Skarbrand": "Exiles of Khorne",
+      "Skulltaker": "Blooded Wanderers",
+      "Arbaal the Undefeated": "Challengers of Khorne",
+      // Nurgle
+      "Ku'gath Plaguefather": "Poxmakers of Nurgle",
+      "Tamurkhan": "The Maggot Host",
+      "Epidemius": "Tallymen of Pestilence",
+      // Tzeentch
+      "Kairos Fateweaver": "Oracles of Tzeentch",
+      "The Changeling": "The Deceivers",
+      // Slaanesh
+      "N'Kari": "Seducers of Slaanesh",
+      "Dechala": "The Tormentors",
+      "The Masque": "The Accursed Troupe",
+      // Daemons of Chaos
+      "Daemon Prince": "Legion of Chaos",
+  // Ogre Kingdoms
+  "Greasus Goldtooth": "Goldtooth",
+  "Skrag the Slaughterer": "Disciples of the Maw",
+  "Golgfag Maneater": "The Maneater",
+  // Chaos Dwarfs
+  "Drazhoath the Ashen": "The Legion of Azgorh",
+  "Zhatan the Black": "The Warhost of Zharr",
+  "Astragoth Ironhand": "Disciples of Hashut",
+  // Undead Legions
+  "Nagash": "Host of Nagash",
+};
+
 /* =====================================================================
    STATE
    ===================================================================== */
-const LORDS = RAW.map(([lord, race, pack]) => ({ lord, race, pack }));
+const LORDS = RAW.map(([lord, race, pack]) => ({ lord, race, pack, faction: FACTIONS[lord] || "" }));
 const BY_NAME = Object.fromEntries(LORDS.map(l => [l.lord, l]));
 const PACK_NAME = Object.fromEntries(PACKS.map(p => [p.id, p]));
 const TEAM_COLORS = ["#d06a4f", "#5b8fd1", "#6fae5a", "#b77ad0"];
 const KEY = "tww3-faction-draw-v1";
 const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+/* Victory conditions live in conditions.js (window.VICTORY).
+   Typos show up as warnings in the browser console (F12). */
+const VICTORY = window.VICTORY || {};
+const KINDS = [["short", "Short victory"], ["long", "Long victory"]];
+for (const [lord, v] of Object.entries(VICTORY)) {
+  if (!BY_NAME[lord]) console.warn(`conditions.js: "${lord}" doesn't match any lord name in index.html`);
+  for (const [k] of KINDS) for (const t of (v[k]?.destroy || []))
+    if (!BY_NAME[t] && !RACES[t]) console.warn(`conditions.js: ${lord} (${k}) target "${t}" isn't a lord or race name`);
+}
+const targetsOf = (lord, kind) => VICTORY[lord]?.[kind]?.destroy || [];
+
+/* Which of attacker's conditions (short/long) require destroying victim? A target can be a lord or a whole race. */
+function hitKinds(attacker, victim) {
+  const race = BY_NAME[victim].race;
+  return KINDS.map(([k]) => k).filter(k => targetsOf(attacker, k).some(t => t === victim || t === race));
+}
+const kindLabel = ks => (ks.length === 2 ? "short and long" : ks[0]);
+
+/* Every attacker→victim pair among assigned players. ally = same team. */
+function computeClashes() {
+  const out = [];
+  const act = state.slots.slice(0, state.players);
+  act.forEach((a, i) => {
+    if (!a.lord) return;
+    act.forEach((b, j) => {
+      if (i === j || !b.lord) return;
+      const kinds = hitKinds(a.lord, b.lord);
+      if (kinds.length) out.push({ from: i, to: j, kinds, ally: state.teams && a.team === b.team });
+    });
+  });
+  return out;
+}
+/* Map settings and start positions live in starts.js (window.MAP, window.STARTS).
+   Positions picked in the browser are kept in state.picks until pasted into starts.js. */
+const MAP = { src: "map.svg", width: 1000, height: 700, ...(window.MAP || {}) };
+const STARTS = window.STARTS || {};
+function posOf(name) {
+  const p = { ...(STARTS[name] || {}), ...((state.picks || {})[name] || {}) };
+  return Number.isFinite(p.x) && Number.isFinite(p.y) ? p : null;
+}
+let picking = false, pickName = null;
+
+let editing = new Set(); // filled slots currently showing the "change faction" dropdown
+let previewLord = null; // a placed lord whose conditions are being shown instead of the drawn card's
+
 const defaults = () => ({
-  owned: PACKS.map(p => p.id), players: 8, teams: false, uniqueRace: false, current: null,
+  owned: PACKS.map(p => p.id), players: 8, teams: false, uniqueRace: false, sides: ["order", "chaos", "other"], current: null, picks: {},
   slots: Array.from({ length: 8 }, (_, i) => ({ name: "", team: i < 4 ? 1 : 2, lord: null })),
 });
 let state = load();
@@ -335,6 +618,7 @@ function pool({ ignoreSlot = -1, avoid = null, countCurrent = true } = {}) {
   const usedRaces = new Set(used.map(n => BY_NAME[n].race));
   return LORDS.filter(l =>
     owned.has(l.pack) && !usedSet.has(l.lord) && l.lord !== avoid &&
+    state.sides.includes(ALIGNMENT[l.race] || "other") &&
     !(state.uniqueRace && usedRaces.has(l.race)));
 }
 const pickFrom = arr => arr[Math.floor(Math.random() * arr.length)];
@@ -362,57 +646,270 @@ function renderCard(show = null, spinning = false, landed = false) {
     card.style.removeProperty("--c");
     card.innerHTML = pool().length
       ? `<p>Draw a faction, then drag it onto a player.</p>`
-      : `<p>Every faction in your selected DLC is already taken. Clear a slot or select more DLC.</p>`;
+      : `<p>Every faction matching your DLC and settings is already taken. Clear a slot, select more DLC, or widen "Draw from".</p>`;
     return;
   }
   if (spinning) card.removeAttribute("data-drag"); else card.dataset.drag = "roll";
   card.style.setProperty("--c", RACES[l.race][1]);
   card.innerHTML = `${crest(l.race, true)}
     <h2 class="card-lord">${esc(l.lord)}</h2>
+    ${l.faction ? `<p class="card-faction">${esc(l.faction)}</p>` : ""}
     <p class="card-race">${esc(l.race)}</p>
     <p class="card-pack">${esc(PACK_NAME[l.pack].game)}: ${esc(PACK_NAME[l.pack].name)}</p>`;
 }
 
-function slotEl(i) {
+/* Dropdown for choosing a faction by hand. Lists every lord (ignores DLC and side
+   filters, since it's a deliberate pick) but disables ones another player already has. */
+function chooser(i) {
+  const s = state.slots[i];
+  const taken = {};
+  state.slots.slice(0, state.players).forEach((o, j) => { if (o.lord && j !== i) taken[o.lord] = j; });
+  const groups = Object.keys(RACES).map(race => {
+    const ls = LORDS.filter(l => l.race === race);
+    return `<optgroup label="${esc(race)}">${ls.map(l => {
+      const t = taken[l.lord];
+      return `<option value="${esc(l.lord)}"${t !== undefined ? " disabled" : ""}${l.lord === s.lord ? " selected" : ""}>${esc(l.lord)}${l.faction ? ` (${esc(l.faction)})` : ""}${t !== undefined ? `, taken by P${t + 1}` : ""}</option>`;
+    }).join("")}</optgroup>`;
+  }).join("");
+  return `<select class="choose" data-i="${i}" aria-label="Choose a faction for player ${i + 1}">
+    <option value="">${s.lord ? "Choose a different faction…" : "Or choose a faction…"}</option>${groups}</select>`;
+}
+
+function slotEl(i, clashes) {
   const s = state.slots[i];
   const l = s.lord && BY_NAME[s.lord];
+  const mine = clashes.filter(c => c.from === i);
+  const onMe = clashes.filter(c => c.to === i && c.ally);
+  const isClash = mine.some(c => c.ally) || onMe.length > 0;
+  const notes = [
+    ...mine.map(c => c.ally
+      ? `<p class="note clash">Clash: must destroy teammate P${c.to + 1} (${kindLabel(c.kinds)} victory)</p>`
+      : `<p class="note rival">Must destroy P${c.to + 1} (${kindLabel(c.kinds)} victory)</p>`),
+    ...onMe.map(c => `<p class="note clash">Clash: teammate P${c.from + 1} must destroy this faction</p>`),
+  ].join("");
   const el = document.createElement("article");
-  el.className = "slot" + (state.teams ? " teamed" : "");
+  el.className = "slot" + (state.teams ? " teamed" : "") + (isClash ? " clash" : "");
   el.dataset.slot = i;
   if (state.teams) el.style.setProperty("--team", TEAM_COLORS[s.team - 1]);
   const teamSelect = state.teams
     ? `<select class="team" data-i="${i}" aria-label="Team for player ${i + 1}">
         ${[1, 2, 3, 4].map(t => `<option value="${t}"${t === s.team ? " selected" : ""}>Team ${t}</option>`).join("")}
        </select>` : "";
-  const body = l
+  const body = l && editing.has(i)
+    ? `<div class="slot-body filled"><div class="choosing">${chooser(i)}
+         <button type="button" class="ghostbtn" data-act="cancel" data-i="${i}">Cancel</button></div></div>`
+    : l
     ? `<div class="slot-body filled">
-         <div class="faction" data-drag="slot" data-from="${i}" title="Drag to another player to swap">
+         <div class="faction" data-drag="slot" data-from="${i}" tabindex="0" role="button"
+              title="Click to see victory conditions, drag to another player to swap">
            ${crest(l.race)}
-           <div><div class="lord">${esc(l.lord)}</div><div class="meta">${esc(l.race)}</div></div>
+           <div><div class="lord">${esc(l.lord)}</div>${l.faction ? `<div class="fname">${esc(l.faction)}</div>` : ""}<div class="meta">${esc(l.race)}</div></div>
          </div>
          <div class="slot-actions">
            <button type="button" data-act="reroll" data-i="${i}">Reroll</button>
+           <button type="button" data-act="change" data-i="${i}">Change</button>
            <button type="button" data-act="clear" data-i="${i}">Clear</button>
          </div>
        </div>`
-    : `<button type="button" class="slot-body empty" data-act="place" data-i="${i}"${state.current && !rolling ? "" : " disabled"}>
-         ${state.current && !rolling ? `Place ${esc(state.current)} here` : "Drop a faction here"}
-       </button>`;
+    : `<div class="slot-body empty">
+         <button type="button" class="drop" data-act="place" data-i="${i}"${state.current && !rolling ? "" : " disabled"}>
+           ${state.current && !rolling ? `Place ${esc(state.current)} here` : "Drop a faction here"}
+         </button>
+         ${chooser(i)}
+       </div>`;
   el.innerHTML = `
     <header class="slot-head">
       <span class="pnum">P${i + 1}</span>
       <input class="pname" data-i="${i}" maxlength="24" placeholder="Player ${i + 1}"
              aria-label="Name of player ${i + 1}" value="${esc(s.name)}">
       ${teamSelect}
-    </header>${body}`;
+    </header>${body}${notes}`;
   return el;
 }
 
 function renderSlots() {
   const left = $("#colLeft"), right = $("#colRight");
   left.innerHTML = ""; right.innerHTML = "";
+  const clashes = computeClashes();
   const leftCount = Math.ceil(state.players / 2);
-  for (let i = 0; i < state.players; i++) (i < leftCount ? left : right).appendChild(slotEl(i));
+  for (let i = 0; i < state.players; i++) (i < leftCount ? left : right).appendChild(slotEl(i, clashes));
+  renderMap(clashes);
+}
+
+/* ---------- map ---------- */
+function initMap() {
+  const svg = $("#map"), W = MAP.width, H = MAP.height;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  let grid = "";
+  for (let x = 100; x < W; x += 100) grid += `<line x1="${x}" y1="0" x2="${x}" y2="${H}"/>`;
+  for (let y = 100; y < H; y += 100) grid += `<line x1="0" y1="${y}" x2="${W}" y2="${y}"/>`;
+  const arrow = (id, fill) => `<marker id="${id}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0L10 5L0 10z" style="fill:${fill}"/></marker>`;
+  svg.innerHTML = `<defs>${arrow("arrow-clash", "var(--danger)")}${arrow("arrow-rival", "var(--ash)")}</defs>
+    <g class="grid">${grid}</g>
+    <image id="mapImg" href="${esc(MAP.src)}" x="0" y="0" width="${W}" height="${H}"/>
+    <g id="mapMarks"></g>`;
+  const img = $("#mapImg");
+  img.addEventListener("load", () => { $("#mapEmpty").hidden = true; svg.querySelector(".grid").style.display = "none"; });
+  img.addEventListener("error", () => { $("#mapEmpty").hidden = false; });
+
+  svg.addEventListener("click", e => {
+    if (!picking || !pickName) return;
+    const pt = new DOMPoint(e.clientX, e.clientY).matrixTransform(svg.getScreenCTM().inverse());
+    state.picks[pickName] = { x: Math.round(pt.x), y: Math.round(pt.y) };
+    save();
+    advancePick();
+  });
+}
+
+function renderMap(clashes = computeClashes()) {
+  const layer = $("#mapMarks");
+  if (!layer) return;
+  const r = Math.round(MAP.width / 85);
+  let html = "";
+
+  if (picking) {
+    for (const l of LORDS) {
+      const p = posOf(l.lord);
+      if (!p) continue;
+      const sel = l.lord === pickName;
+      html += `<circle cx="${p.x}" cy="${p.y}" r="${sel ? r * 0.8 : r * 0.35}" class="pickdot${sel ? " sel" : ""}"
+        style="--c:${RACES[l.race][1]}"><title>${esc(l.lord)}</title></circle>`;
+    }
+    layer.innerHTML = html;
+    $("#mapNote").textContent = "";
+    return;
+  }
+
+  // player markers; nudge sideways when two starts share a spot
+  const active = state.slots.slice(0, state.players);
+  const pts = {}, seen = {};
+  active.forEach((s, i) => {
+    const p = s.lord && posOf(s.lord);
+    if (!p) return;
+    const key = `${Math.round(p.x / r)},${Math.round(p.y / r)}`;
+    const k = seen[key] = (seen[key] ?? -1) + 1;
+    pts[i] = { x: p.x + k * r * 1.8, y: p.y };
+  });
+
+  // clash lines, attacker to target
+  for (const c of clashes) {
+    const a = pts[c.from], b = pts[c.to];
+    if (!a || !b) continue;
+    const dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || 1, ux = dx / d, uy = dy / d;
+    const kind = c.ally ? "clash" : "rival";
+    html += `<line class="link ${kind}" x1="${a.x + ux * r}" y1="${a.y + uy * r}" x2="${b.x - ux * (r + 4)}" y2="${b.y - uy * (r + 4)}"
+      stroke-width="${c.ally ? r * 0.3 : r * 0.18}" marker-end="url(#arrow-${kind})">
+      <title>P${c.from + 1} must destroy ${c.ally ? "teammate " : ""}P${c.to + 1} (${kindLabel(c.kinds)} victory)</title></line>`;
+  }
+
+  // the drawn card, before it's placed
+  const cur = !rolling && state.current && posOf(state.current);
+  if (cur) html += `<circle class="drawn" cx="${cur.x}" cy="${cur.y}" r="${r * 1.5}" style="--c:${RACES[BY_NAME[state.current].race][1]}">
+      <title>Drawn: ${esc(state.current)}${cur.place ? ", " + esc(cur.place) : ""}</title></circle>`;
+
+  for (const [i, p] of Object.entries(pts)) {
+    const s = state.slots[i], l = BY_NAME[s.lord], color = RACES[l.race][1], place = posOf(s.lord).place;
+    const ring = state.teams ? TEAM_COLORS[s.team - 1] : "var(--iron)";
+    html += `<g class="mark" data-lord="${esc(s.lord)}" tabindex="0" role="button" transform="translate(${p.x} ${p.y})">
+      <title>P${+i + 1}: ${esc(s.lord)}${l.faction ? ` (${esc(l.faction)})` : ""}${place ? ", " + esc(place) : ""}</title>
+      <circle r="${r}" stroke-width="${r * 0.3}" style="fill:${color};stroke:${ring}"/>
+      <text y="${r * 0.36}" font-size="${r}" style="fill:${inkFor(color)}">${+i + 1}</text></g>`;
+  }
+  layer.innerHTML = html;
+
+  const missing = active.filter(s => s.lord && !posOf(s.lord)).length;
+  $("#mapNote").textContent = missing
+    ? `${missing} assigned ${missing === 1 ? "faction has" : "factions have"} no start position yet.` : "";
+}
+
+/* ---------- position picker ---------- */
+const orderedLords = () => Object.keys(RACES).flatMap(r => LORDS.filter(l => l.race === r));
+function renderPicker() {
+  const onlyMissing = $("#pickMissing").checked;
+  const list = orderedLords().filter(l => !onlyMissing || !posOf(l.lord) || l.lord === pickName);
+  if (!list.some(l => l.lord === pickName)) pickName = list[0]?.lord || null;
+  $("#pickLord").innerHTML = Object.keys(RACES).map(race => {
+    const ls = list.filter(l => l.race === race);
+    return ls.length ? `<optgroup label="${esc(race)}">${ls.map(l =>
+      `<option${l.lord === pickName ? " selected" : ""}>${esc(l.lord)}</option>`).join("")}</optgroup>` : "";
+  }).join("");
+  const placed = LORDS.filter(l => posOf(l.lord)).length;
+  $("#pickCount").textContent = `${placed} of ${LORDS.length} placed`;
+}
+function advancePick() {
+  const onlyMissing = $("#pickMissing").checked;
+  const ordered = orderedLords();
+  const idx = ordered.findIndex(l => l.lord === pickName);
+  const next = [...ordered.slice(idx + 1), ...ordered.slice(0, idx)].find(l => !onlyMissing || !posOf(l.lord));
+  if (next) pickName = next.lord;
+  renderPicker(); renderMap();
+}
+function setPicking(on) {
+  picking = on;
+  $("#picker").hidden = !on;
+  $("#mapFrame").classList.toggle("picking", on);
+  $("#pickToggle").textContent = on ? "Done picking" : "Pick start positions";
+  $("#pickToggle").setAttribute("aria-expanded", on);
+  if (on) { pickName = state.current || pickName; renderPicker(); }
+  renderMap();
+}
+function startsFile() {
+  let out = `/*
+  Start positions for the map in index.html.
+
+  MAP     The base map image and the size of its coordinate grid.
+          Set width and height to match your map's viewBox BEFORE picking
+          positions, e.g. viewBox="0 0 1600 1000" means width 1600, height 1000.
+  STARTS  x and y in that grid. "place" is optional and shows on hover.
+
+  Easiest way to fill this in: open the site, press "Pick start positions",
+  click the map for each lord, then "Copy starts.js" and paste over this file.
+*/
+window.MAP = { src: ${JSON.stringify(MAP.src)}, width: ${MAP.width}, height: ${MAP.height} };
+
+window.STARTS = {
+`;
+  for (const race of Object.keys(RACES)) {
+    const ls = LORDS.filter(l => l.race === race);
+    if (!ls.length) continue;
+    out += `\n  // ${race}\n`;
+    for (const l of ls) {
+      const p = posOf(l.lord);
+      out += `  ${JSON.stringify(l.lord)}: ${p ? `{ x: ${p.x}, y: ${p.y}${p.place ? `, place: ${JSON.stringify(p.place)}` : ""} }` : "null"},\n`;
+    }
+  }
+  return out + "};\n";
+}
+
+function renderVc() {
+  const el = $("#vc");
+  const active = state.slots.slice(0, state.players);
+  if (previewLord && !active.some(s => s.lord === previewLord)) previewLord = null;
+  const name = previewLord || state.current;
+  if (!name || rolling) { el.hidden = true; el.innerHTML = ""; return; }
+  el.hidden = false;
+  const v = VICTORY[name];
+  // which players hold a lord (or race) that this condition targets
+  const holders = t => active.map((s, i) => ({ s, i }))
+    .filter(({ s }) => s.lord && s.lord !== name && (s.lord === t || BY_NAME[s.lord].race === t))
+    .map(({ i }) => `P${i + 1}`);
+  const block = ([k, label]) => {
+    const lines = (v?.[k]?.text || []).filter(Boolean);
+    const targets = v?.[k]?.destroy || [];
+    const targetHtml = targets.map(t => {
+      const h = holders(t);
+      return `<span class="target${h.length ? " live" : ""}">${esc(t)}${h.length ? ` <em>in play: ${h.join(", ")}</em>` : ""}</span>`;
+    }).join("");
+    return `<div class="vc-block"><h3>${label}</h3>
+      ${lines.length ? `<ul>${lines.map(t => `<li>${esc(t)}</li>`).join("")}</ul>` : `<p class="muted">Not entered yet.</p>`}
+      ${targets.length ? `<p class="targets">Must destroy: ${targetHtml}</p>` : ""}
+    </div>`;
+  };
+  el.innerHTML = `
+    <div class="vc-head">
+      <h2 class="vc-title">${previewLord ? `Victory conditions for ${esc(name)}` : "Victory conditions"}</h2>
+      ${previewLord ? `<button type="button" class="ghostbtn" data-act="vc-close">${state.current ? "Back to drawn card" : "Close"}</button>` : ""}
+    </div>${KINDS.map(block).join("")}`;
 }
 
 function renderDlc() {
@@ -436,15 +933,17 @@ function renderSettings() {
   $("#players").value = state.players;
   $("#teams").checked = state.teams;
   $("#uniqueRace").checked = state.uniqueRace;
+  document.querySelectorAll('input[name="side"]').forEach(cb => cb.checked = state.sides.includes(cb.value));
 }
 
-function renderAll() { renderCard(); renderSlots(); }
+function renderAll() { renderCard(); renderSlots(); renderVc(); }
 
 /* =====================================================================
    ACTIONS
    ===================================================================== */
 function roll() {
   if (rolling) return;
+  previewLord = null;
   let p = pool({ avoid: state.current, countCurrent: false });
   if (!p.length) p = pool({ countCurrent: false });
   if (!p.length) { state.current = null; save(); renderAll(); return; }
@@ -455,6 +954,7 @@ function roll() {
   rolling = true;
   state.current = null;
   renderSlots();
+  renderVc();
   let ticks = 0;
   const iv = setInterval(() => {
     renderCard(pickFrom(p), true);
@@ -465,6 +965,7 @@ function roll() {
       save();
       renderCard(null, false, true);
       renderSlots();
+      renderVc();
     }
   }, 55);
 }
@@ -511,10 +1012,16 @@ function copyResults() {
     const who = s.name.trim() || `Player ${s.i + 1}`;
     const team = state.teams ? ` (Team ${s.team})` : "";
     const l = s.lord && BY_NAME[s.lord];
-    return `${who}${team}: ${l ? `${l.lord}, ${l.race}` : "no faction yet"}`;
+    return `${who}${team}: ${l ? `${l.lord}${l.faction ? ` (${l.faction})` : ""}, ${l.race}` : "no faction yet"}`;
   });
+  const clashes = computeClashes().filter(c => c.ally);
+  const nm = i => state.slots[i].name.trim() || `Player ${i + 1}`;
+  if (clashes.length) lines.push("", "Clashes:", ...clashes.map(c =>
+    `${nm(c.from)} must destroy teammate ${nm(c.to)} (${kindLabel(c.kinds)} victory)`));
   const text = lines.join("\n");
-  const done = () => flash("Copied");
+  copyText(text, () => flash("Copied"));
+}
+function copyText(text, done) {
   if (navigator.clipboard && window.isSecureContext) {
     navigator.clipboard.writeText(text).then(done, () => fallbackCopy(text, done));
   } else fallbackCopy(text, done);
@@ -549,12 +1056,26 @@ $("#resetBtn").addEventListener("click", () => {
 
 document.addEventListener("click", e => {
   if (suppressClick) return;
+  const m = e.target.closest(".mark");
+  const f = e.target.closest(".faction");
+  if (m || f) {
+    previewLord = m ? m.dataset.lord : state.slots[+f.dataset.from].lord;
+    renderVc();
+    $("#vc").scrollIntoView({ block: "nearest", behavior: reducedMotion ? "auto" : "smooth" });
+    return;
+  }
   const b = e.target.closest("[data-act]");
   if (!b) return;
   const i = +b.dataset.i;
+  if (b.dataset.act === "vc-close") { previewLord = null; renderVc(); }
+  if (b.dataset.act === "change") {
+    editing.add(i); renderSlots();
+    document.querySelector(`.choose[data-i="${i}"]`)?.focus();
+  }
+  if (b.dataset.act === "cancel") { editing.delete(i); renderSlots(); }
   if (b.dataset.act === "place") placeCurrent(i);
   if (b.dataset.act === "reroll") reroll(i);
-  if (b.dataset.act === "clear") { state.slots[i].lord = null; save(); renderAll(); }
+  if (b.dataset.act === "clear") { state.slots[i].lord = null; editing.delete(i); save(); renderAll(); }
 });
 
 document.addEventListener("input", e => {
@@ -562,6 +1083,14 @@ document.addEventListener("input", e => {
 });
 document.addEventListener("change", e => {
   const t = e.target;
+  if (t.matches(".choose") && t.value) {
+    const i = +t.dataset.i;
+    state.slots[i].lord = t.value;
+    if (state.current === t.value) state.current = null; // it was sitting on the card
+    editing.delete(i);
+    save(); renderAll();
+    return;
+  }
   if (t.matches(".team")) { state.slots[+t.dataset.i].team = +t.value; save(); renderSlots(); }
   if (t.matches("[data-pack]")) {
     const set = new Set(state.owned);
@@ -575,6 +1104,10 @@ $("#players").addEventListener("change", e => {
   const n = Math.min(8, Math.max(1, parseInt(e.target.value, 10) || 1));
   e.target.value = n; state.players = n; save(); renderAll();
 });
+document.querySelectorAll('input[name="side"]').forEach(cb => cb.addEventListener("change", () => {
+  state.sides = [...document.querySelectorAll('input[name="side"]:checked')].map(c => c.value);
+  save(); renderCard();
+}));
 $("#teams").addEventListener("change", e => { state.teams = e.target.checked; save(); renderSlots(); });
 $("#uniqueRace").addEventListener("change", e => { state.uniqueRace = e.target.checked; save(); renderCard(); });
 
@@ -586,6 +1119,7 @@ document.addEventListener("click", e => {
   if (!dlcPanel.hidden && !e.target.closest(".dlc")) setDlcOpen(false);
 });
 document.addEventListener("keydown", e => {
+  if ((e.key === "Enter" || e.key === " ") && e.target.matches(".faction, .mark")) { e.preventDefault(); e.target.dispatchEvent(new MouseEvent("click", { bubbles: true })); }
   if (e.key === "Escape" && !dlcPanel.hidden) { setDlcOpen(false); dlcBtn.focus(); }
 });
 dlcPanel.addEventListener("click", e => {
@@ -646,7 +1180,20 @@ function endDrag(e, cancelled) {
 document.addEventListener("pointerup", e => endDrag(e, false));
 document.addEventListener("pointercancel", e => endDrag(e, true));
 
+$("#pickToggle").addEventListener("click", () => setPicking(!picking));
+$("#pickLord").addEventListener("change", e => { pickName = e.target.value; renderMap(); });
+$("#pickMissing").addEventListener("change", renderPicker);
+$("#pickCopy").addEventListener("click", () => copyText(startsFile(), () => {
+  $("#pickStatus").textContent = "Copied";
+  setTimeout(() => $("#pickStatus").textContent = "", 2000);
+}));
+$("#pickClear").addEventListener("click", () => {
+  if (!Object.keys(state.picks).length || !confirm("Discard positions picked in this browser? Anything already saved in starts.js stays.")) return;
+  state.picks = {}; save(); renderPicker(); renderMap();
+});
+
 /* Go */
+initMap();
 renderSettings();
 renderDlc();
 renderAll();
