@@ -57,6 +57,20 @@ button,input,select{font:inherit;color:inherit}
 .dlc-panel .count{color:var(--ash);margin-left:auto;font-size:14px}
 input[type=checkbox]{accent-color:var(--brass);width:16px;height:16px}
 
+.pool-panel{width:min(620px,92vw)}
+.pool-summary{margin:0 0 10px;color:var(--ash);font-size:15px}
+.pool-summary strong{color:var(--bone)}
+.pool-groups{columns:2 220px;column-gap:24px}
+.pool-group{break-inside:avoid;margin-bottom:10px}
+.pool-group h3{display:flex;align-items:center;gap:8px;margin:0 0 2px;font-family:var(--display);font-weight:400;font-size:20px;color:var(--brass)}
+.pool-group h3::before{content:"";width:10px;height:10px;border-radius:2px;background:var(--c)}
+.pool-group h3 span{margin-left:auto;font-family:var(--ui);font-size:14px;color:var(--ash)}
+.pool-group ul{list-style:none;margin:0;padding:0}
+.pool-group li{padding:1px 0;font-size:15px}
+.pool-group li.out{color:var(--ash)}
+.pool-group li.out s{text-decoration-color:var(--ash)}
+.pool-group li em{font-style:normal;font-size:13px;margin-left:6px}
+
 .card{
   --c:var(--brass);
   width:100%; min-height:340px; display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -66,7 +80,11 @@ input[type=checkbox]{accent-color:var(--brass);width:16px;height:16px}
   box-shadow:inset 0 0 0 5px var(--plate), inset 0 0 0 6px color-mix(in srgb, var(--c) 35%, transparent);
   user-select:none;
 }
+.card{position:relative}
 .card[data-drag]{cursor:grab;touch-action:none}
+.card-clear{position:absolute;top:12px;right:12px;background:var(--plate);border:1px solid var(--edge);border-radius:3px;padding:2px 10px;font-size:14px;color:var(--ash);cursor:pointer}
+.card-clear:hover{border-color:var(--brass);color:var(--brass)}
+.ghost .card-clear{display:none}
 .card.empty{background:transparent;border:1px dashed var(--edge);box-shadow:none;color:var(--ash)}
 .card.empty p{max-width:24ch;margin:0}
 .card-lord{font-family:var(--display);font-weight:400;font-size:clamp(34px,3.2vw,44px);line-height:1.05;margin:16px 0 6px}
@@ -153,6 +171,7 @@ body.dragging{cursor:grabbing}
 .vc li{margin:2px 0}
 .vc .muted{color:var(--ash);margin:2px 0 0;font-size:15px}
 .targets{margin:6px 0 0;font-size:15px;color:var(--ash);display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.must{color:#ec8a74;font-weight:600}
 .target{border:1px solid var(--edge);border-radius:3px;padding:1px 7px;color:var(--bone)}
 .target.live{border-color:#d9973f;color:#f0c07a}
 .target em{font-style:normal;color:var(--ash)}
@@ -168,29 +187,20 @@ body.dragging{cursor:grabbing}
 .map-wrap{max-width:1400px;margin:10px auto 0;padding:0 24px}
 .map-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:8px}
 .map-head h2{font-family:var(--display);font-weight:400;font-size:30px;line-height:1;color:var(--brass);margin:0}
-.picker{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;background:var(--plate);border:1px solid var(--edge);border-radius:4px;padding:10px 14px;margin-bottom:8px}
-.picker select{background:var(--plate-2);border:1px solid var(--edge);border-radius:3px;padding:3px 6px;max-width:260px;margin-left:6px}
-.picker .hint{flex-basis:100%;text-align:left}
-.picker[hidden]{display:none}
-#pickCount{color:var(--ash)}
-#pickStatus{color:var(--brass)}
 .map-frame{position:relative;background:var(--plate);border:1px solid var(--edge);border-radius:4px;overflow:hidden}
 .map-frame svg{display:block;width:100%;height:auto}
-.map-frame.picking svg{cursor:crosshair}
 .map-empty{position:absolute;inset:0;display:grid;place-items:center;margin:0;padding:20px;color:var(--ash);text-align:center;pointer-events:none}
 .map-empty[hidden]{display:none}
 .grid line{stroke:var(--edge);stroke-width:1;opacity:.6}
 .link{stroke-linecap:round}
 .link.clash{stroke:var(--danger)}
-.link.rival{stroke:var(--ash);stroke-dasharray:6 7;opacity:.75}
+.link.rival{stroke:var(--danger);stroke-dasharray:6 7;opacity:.85}
 .mark{cursor:pointer}
 .mark:focus{outline:none}
 .mark:focus-visible circle{stroke:var(--brass)}
 .mark text{text-anchor:middle;font-weight:600;font-family:var(--ui);pointer-events:none}
 .drawn{fill:none;stroke:var(--c);stroke-width:3;stroke-dasharray:5 4;animation:pulse 1.4s ease-in-out infinite}
 @keyframes pulse{50%{opacity:.3}}
-.pickdot{fill:var(--c);opacity:.7}
-.pickdot.sel{opacity:1;stroke:var(--bone);stroke-width:2}
 .map-note{margin:6px 0 0;color:var(--ash);font-size:15px;min-height:1em}
 
 @media (max-width:900px){
@@ -228,6 +238,8 @@ body.dragging{cursor:grabbing}
         </div>
         <div id="dlcGroups"></div>
       </div>
+      <button id="poolBtn" class="dlc-btn" aria-expanded="false" aria-controls="poolPanel"></button>
+      <div id="poolPanel" class="dlc-panel pool-panel" hidden></div>
     </div>
     <div id="card" class="card empty" aria-live="polite"></div>
     <section id="vc" class="vc" aria-live="polite" hidden></section>
@@ -237,19 +249,9 @@ body.dragging{cursor:grabbing}
   <section class="column" id="colRight" aria-label="Players"></section>
 </main>
 
-<section class="map-wrap" aria-labelledby="mapTitle" hidden>
+<section class="map-wrap" aria-labelledby="mapTitle">
   <div class="map-head">
     <h2 id="mapTitle">Start positions</h2>
-    <button type="button" id="pickToggle" class="ghostbtn" aria-expanded="false" aria-controls="picker">Pick start positions</button>
-  </div>
-  <div id="picker" class="picker" hidden>
-    <label>Lord <select id="pickLord"></select></label>
-    <label class="check"><input type="checkbox" id="pickMissing" checked> Only lords without a position</label>
-    <span id="pickCount"></span>
-    <button type="button" id="pickCopy" class="ghostbtn">Copy starts.js</button>
-    <button type="button" id="pickClear" class="ghostbtn">Discard picks</button>
-    <span id="pickStatus" role="status"></span>
-    <p class="hint">Click the map to set the selected lord's start. It moves on to the next lord automatically. When you're done, copy starts.js and paste it over the file in your repo.</p>
   </div>
   <div id="mapFrame" class="map-frame">
     <svg id="map" role="img" aria-label="Map of player start positions"></svg>
@@ -365,7 +367,7 @@ const RAW = [
   ["Malekith","Dark Elves","wh2"], ["Morathi","Dark Elves","wh2"], ["Lokhir Fellheart","Dark Elves","wh2"], ["Rakarth","Dark Elves","wh2"],
   ["Lord Mazdamundi","Lizardmen","wh2"], ["Kroq-Gar","Lizardmen","wh2"], ["Tiktaq'to","Lizardmen","wh2"], ["Gor-Rok","Lizardmen","wh2"],
   ["Queek Headtaker","Skaven","wh2"], ["Lord Skrolk","Skaven","wh2"], ["Tretch Craventail","Skaven","wh2"],
-  ["Drycha","Wood Elves","rwe"], ["Repanse de Lyonesse","Bretonnia","wh2"], 
+  ["Drycha","Wood Elves","wh2"], ["Repanse de Lyonesse","Bretonnia","wh2"], 
   ["Morghur the Shadowgave","Beastmen","wh2"],
   ["Settra the Imperishable","Tomb Kings","tk"], ["Arkhan the Black","Tomb Kings","tk"], ["Grand Hierophant Khatep","Tomb Kings","tk"], ["High Queen Khalida","Tomb Kings","tk"],
   ["Luthor Harkon","Vampire Coast","cvc"], ["Count Noctilus","Vampire Coast","cvc"], ["Aranessa Saltspite","Vampire Coast","cvc"], ["Cylostra Direfin","Vampire Coast","cvc"],
@@ -572,21 +574,25 @@ function computeClashes() {
   });
   return out;
 }
-/* Map settings and start positions live in starts.js (window.MAP, window.STARTS).
-   Positions picked in the browser are kept in state.picks until pasted into starts.js. */
+/* Map settings and start positions live in starts.js (window.MAP, window.STARTS). */
 const MAP = { src: "map.svg", width: 1000, height: 700, ...(window.MAP || {}) };
 const STARTS = window.STARTS || {};
 function posOf(name) {
-  const p = { ...(STARTS[name] || {}), ...((state.picks || {})[name] || {}) };
+  const p = STARTS[name] || {};
   return Number.isFinite(p.x) && Number.isFinite(p.y) ? p : null;
 }
-let picking = false, pickName = null;
+
+/* A player's name if entered, otherwise "P3". whoHtml wraps it so typing a name updates it in place. */
+const who = i => state.slots[i].name.trim() || `P${i + 1}`;
+const whoHtml = i => `<span class="pl" data-p="${i}">${esc(who(i))}</span>`;
+/* Map marker label: initial of the first name, or the player number. */
+const markLabel = i => { const n = state.slots[i].name.trim(); return n ? n[0].toUpperCase() : String(i + 1); };
 
 let editing = new Set(); // filled slots currently showing the "change faction" dropdown
 let previewLord = null; // a placed lord whose conditions are being shown instead of the drawn card's
 
 const defaults = () => ({
-  owned: PACKS.map(p => p.id), players: 8, teams: false, uniqueRace: false, sides: ["order", "chaos", "other"], current: null, picks: {},
+  owned: PACKS.map(p => p.id), players: 8, teams: false, uniqueRace: false, sides: ["order", "chaos", "other"], current: null,
   slots: Array.from({ length: 8 }, (_, i) => ({ name: "", team: i < 4 ? 1 : 2, lord: null })),
 });
 let state = load();
@@ -637,10 +643,43 @@ function crest(race, big = false) {
   return `<span class="crest${big ? " big" : ""}" style="--c:${color};--ink:${inkFor(color)}" aria-hidden="true">${code}</span>`;
 }
 
+/* The pool popover: every lord allowed by the DLC and "Draw from" settings,
+   with the ones that can't be drawn right now struck through and a reason. */
+function renderPool() {
+  const btn = $("#poolBtn"), panel = $("#poolPanel");
+  const available = new Set(pool({ countCurrent: false }).map(l => l.lord));
+  btn.textContent = `${available.size} in pool`;
+  if (panel.hidden) return;
+
+  const owned = new Set(state.owned);
+  const eligible = LORDS.filter(l => owned.has(l.pack) && state.sides.includes(ALIGNMENT[l.race] || "other"));
+  const holder = {};
+  state.slots.slice(0, state.players).forEach((s, i) => { if (s.lord) holder[s.lord] = esc(who(i)); });
+
+  if (!eligible.length) {
+    panel.innerHTML = `<p class="pool-summary">No lords match your DLC selection and "Draw from" settings.</p>`;
+    return;
+  }
+  const groups = Object.keys(RACES).map(race => {
+    const ls = eligible.filter(l => l.race === race);
+    if (!ls.length) return "";
+    const free = ls.filter(l => available.has(l.lord)).length;
+    return `<section class="pool-group" style="--c:${RACES[race][1]}">
+      <h3>${esc(race)}<span>${free} of ${ls.length}</span></h3>
+      <ul>${ls.map(l => available.has(l.lord)
+        ? `<li>${esc(l.lord)}</li>`
+        : `<li class="out"><s>${esc(l.lord)}</s><em>${holder[l.lord] || "race already taken"}</em></li>`).join("")}</ul>
+    </section>`;
+  }).join("");
+  panel.innerHTML = `<p class="pool-summary"><strong>${available.size} of ${eligible.length}</strong> lords can be drawn with your DLC and "Draw from" settings. Struck-through lords are taken.</p>
+    <div class="pool-groups">${groups}</div>`;
+}
+
 function renderCard(show = null, spinning = false, landed = false) {
   const card = $("#card");
   const l = show || (state.current && BY_NAME[state.current]);
   card.className = "card" + (l ? "" : " empty") + (spinning ? " spinning" : "") + (landed ? " landed" : "");
+  if (!spinning) renderPool();
   if (!l) {
     card.removeAttribute("data-drag");
     card.style.removeProperty("--c");
@@ -651,7 +690,8 @@ function renderCard(show = null, spinning = false, landed = false) {
   }
   if (spinning) card.removeAttribute("data-drag"); else card.dataset.drag = "roll";
   card.style.setProperty("--c", RACES[l.race][1]);
-  card.innerHTML = `${crest(l.race, true)}
+  card.innerHTML = `${spinning ? "" : `<button type="button" class="card-clear" data-act="clear-card" aria-label="Clear the drawn card">Clear</button>`}
+    ${crest(l.race, true)}
     <h2 class="card-lord">${esc(l.lord)}</h2>
     ${l.faction ? `<p class="card-faction">${esc(l.faction)}</p>` : ""}
     <p class="card-race">${esc(l.race)}</p>
@@ -668,7 +708,7 @@ function chooser(i) {
     const ls = LORDS.filter(l => l.race === race);
     return `<optgroup label="${esc(race)}">${ls.map(l => {
       const t = taken[l.lord];
-      return `<option value="${esc(l.lord)}"${t !== undefined ? " disabled" : ""}${l.lord === s.lord ? " selected" : ""}>${esc(l.lord)}${l.faction ? ` (${esc(l.faction)})` : ""}${t !== undefined ? `, taken by P${t + 1}` : ""}</option>`;
+      return `<option value="${esc(l.lord)}"${t !== undefined ? " disabled" : ""}${l.lord === s.lord ? " selected" : ""}>${esc(l.lord)}${l.faction ? ` (${esc(l.faction)})` : ""}${t !== undefined ? `, taken by ${esc(who(t))}` : ""}</option>`;
     }).join("")}</optgroup>`;
   }).join("");
   return `<select class="choose" data-i="${i}" aria-label="Choose a faction for player ${i + 1}">
@@ -683,9 +723,9 @@ function slotEl(i, clashes) {
   const isClash = mine.some(c => c.ally) || onMe.length > 0;
   const notes = [
     ...mine.map(c => c.ally
-      ? `<p class="note clash">Clash: must destroy teammate P${c.to + 1} (${kindLabel(c.kinds)} victory)</p>`
-      : `<p class="note rival">Must destroy P${c.to + 1} (${kindLabel(c.kinds)} victory)</p>`),
-    ...onMe.map(c => `<p class="note clash">Clash: teammate P${c.from + 1} must destroy this faction</p>`),
+      ? `<p class="note clash">Clash: must destroy teammate ${whoHtml(c.to)} (${kindLabel(c.kinds)} victory)</p>`
+                : `<p class="note rival"><span class="must">Must destroy ${whoHtml(c.to)} (${kindLabel(c.kinds)} victory)</span></p>`),
+    ...onMe.map(c => `<p class="note clash">Clash: teammate ${whoHtml(c.from)} must destroy this faction</p>`),
   ].join("");
   const el = document.createElement("article");
   el.className = "slot" + (state.teams ? " teamed" : "") + (isClash ? " clash" : "");
@@ -744,7 +784,7 @@ function initMap() {
   for (let x = 100; x < W; x += 100) grid += `<line x1="${x}" y1="0" x2="${x}" y2="${H}"/>`;
   for (let y = 100; y < H; y += 100) grid += `<line x1="0" y1="${y}" x2="${W}" y2="${y}"/>`;
   const arrow = (id, fill) => `<marker id="${id}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0L10 5L0 10z" style="fill:${fill}"/></marker>`;
-  svg.innerHTML = `<defs>${arrow("arrow-clash", "var(--danger)")}${arrow("arrow-rival", "var(--ash)")}</defs>
+  svg.innerHTML = `<defs>${arrow("arrow-clash", "var(--danger)")}${arrow("arrow-rival", "var(--danger)")}</defs>
     <g class="grid">${grid}</g>
     <image id="mapImg" href="${esc(MAP.src)}" x="0" y="0" width="${W}" height="${H}"/>
     <g id="mapMarks"></g>`;
@@ -752,13 +792,6 @@ function initMap() {
   img.addEventListener("load", () => { $("#mapEmpty").hidden = true; svg.querySelector(".grid").style.display = "none"; });
   img.addEventListener("error", () => { $("#mapEmpty").hidden = false; });
 
-  svg.addEventListener("click", e => {
-    if (!picking || !pickName) return;
-    const pt = new DOMPoint(e.clientX, e.clientY).matrixTransform(svg.getScreenCTM().inverse());
-    state.picks[pickName] = { x: Math.round(pt.x), y: Math.round(pt.y) };
-    save();
-    advancePick();
-  });
 }
 
 function renderMap(clashes = computeClashes()) {
@@ -766,19 +799,6 @@ function renderMap(clashes = computeClashes()) {
   if (!layer) return;
   const r = Math.round(MAP.width / 85);
   let html = "";
-
-  if (picking) {
-    for (const l of LORDS) {
-      const p = posOf(l.lord);
-      if (!p) continue;
-      const sel = l.lord === pickName;
-      html += `<circle cx="${p.x}" cy="${p.y}" r="${sel ? r * 0.8 : r * 0.35}" class="pickdot${sel ? " sel" : ""}"
-        style="--c:${RACES[l.race][1]}"><title>${esc(l.lord)}</title></circle>`;
-    }
-    layer.innerHTML = html;
-    $("#mapNote").textContent = "";
-    return;
-  }
 
   // player markers; nudge sideways when two starts share a spot
   const active = state.slots.slice(0, state.players);
@@ -799,7 +819,7 @@ function renderMap(clashes = computeClashes()) {
     const kind = c.ally ? "clash" : "rival";
     html += `<line class="link ${kind}" x1="${a.x + ux * r}" y1="${a.y + uy * r}" x2="${b.x - ux * (r + 4)}" y2="${b.y - uy * (r + 4)}"
       stroke-width="${c.ally ? r * 0.3 : r * 0.18}" marker-end="url(#arrow-${kind})">
-      <title>P${c.from + 1} must destroy ${c.ally ? "teammate " : ""}P${c.to + 1} (${kindLabel(c.kinds)} victory)</title></line>`;
+      <title>${esc(who(c.from))} must destroy ${c.ally ? "teammate " : ""}${esc(who(c.to))} (${kindLabel(c.kinds)} victory)</title></line>`;
   }
 
   // the drawn card, before it's placed
@@ -811,74 +831,15 @@ function renderMap(clashes = computeClashes()) {
     const s = state.slots[i], l = BY_NAME[s.lord], color = RACES[l.race][1], place = posOf(s.lord).place;
     const ring = state.teams ? TEAM_COLORS[s.team - 1] : "var(--iron)";
     html += `<g class="mark" data-lord="${esc(s.lord)}" tabindex="0" role="button" transform="translate(${p.x} ${p.y})">
-      <title>P${+i + 1}: ${esc(s.lord)}${l.faction ? ` (${esc(l.faction)})` : ""}${place ? ", " + esc(place) : ""}</title>
+      <title>${esc(who(+i))}: ${esc(s.lord)}${l.faction ? ` (${esc(l.faction)})` : ""}${place ? ", " + esc(place) : ""}</title>
       <circle r="${r}" stroke-width="${r * 0.3}" style="fill:${color};stroke:${ring}"/>
-      <text y="${r * 0.36}" font-size="${r}" style="fill:${inkFor(color)}">${+i + 1}</text></g>`;
+      <text y="${r * 0.36}" font-size="${r}" style="fill:${inkFor(color)}">${esc(markLabel(+i))}</text></g>`;
   }
   layer.innerHTML = html;
 
   const missing = active.filter(s => s.lord && !posOf(s.lord)).length;
   $("#mapNote").textContent = missing
     ? `${missing} assigned ${missing === 1 ? "faction has" : "factions have"} no start position yet.` : "";
-}
-
-/* ---------- position picker ---------- */
-const orderedLords = () => Object.keys(RACES).flatMap(r => LORDS.filter(l => l.race === r));
-function renderPicker() {
-  const onlyMissing = $("#pickMissing").checked;
-  const list = orderedLords().filter(l => !onlyMissing || !posOf(l.lord) || l.lord === pickName);
-  if (!list.some(l => l.lord === pickName)) pickName = list[0]?.lord || null;
-  $("#pickLord").innerHTML = Object.keys(RACES).map(race => {
-    const ls = list.filter(l => l.race === race);
-    return ls.length ? `<optgroup label="${esc(race)}">${ls.map(l =>
-      `<option${l.lord === pickName ? " selected" : ""}>${esc(l.lord)}</option>`).join("")}</optgroup>` : "";
-  }).join("");
-  const placed = LORDS.filter(l => posOf(l.lord)).length;
-  $("#pickCount").textContent = `${placed} of ${LORDS.length} placed`;
-}
-function advancePick() {
-  const onlyMissing = $("#pickMissing").checked;
-  const ordered = orderedLords();
-  const idx = ordered.findIndex(l => l.lord === pickName);
-  const next = [...ordered.slice(idx + 1), ...ordered.slice(0, idx)].find(l => !onlyMissing || !posOf(l.lord));
-  if (next) pickName = next.lord;
-  renderPicker(); renderMap();
-}
-function setPicking(on) {
-  picking = on;
-  $("#picker").hidden = !on;
-  $("#mapFrame").classList.toggle("picking", on);
-  $("#pickToggle").textContent = on ? "Done picking" : "Pick start positions";
-  $("#pickToggle").setAttribute("aria-expanded", on);
-  if (on) { pickName = state.current || pickName; renderPicker(); }
-  renderMap();
-}
-function startsFile() {
-  let out = `/*
-  Start positions for the map in index.html.
-
-  MAP     The base map image and the size of its coordinate grid.
-          Set width and height to match your map's viewBox BEFORE picking
-          positions, e.g. viewBox="0 0 1600 1000" means width 1600, height 1000.
-  STARTS  x and y in that grid. "place" is optional and shows on hover.
-
-  Easiest way to fill this in: open the site, press "Pick start positions",
-  click the map for each lord, then "Copy starts.js" and paste over this file.
-*/
-window.MAP = { src: ${JSON.stringify(MAP.src)}, width: ${MAP.width}, height: ${MAP.height} };
-
-window.STARTS = {
-`;
-  for (const race of Object.keys(RACES)) {
-    const ls = LORDS.filter(l => l.race === race);
-    if (!ls.length) continue;
-    out += `\n  // ${race}\n`;
-    for (const l of ls) {
-      const p = posOf(l.lord);
-      out += `  ${JSON.stringify(l.lord)}: ${p ? `{ x: ${p.x}, y: ${p.y}${p.place ? `, place: ${JSON.stringify(p.place)}` : ""} }` : "null"},\n`;
-    }
-  }
-  return out + "};\n";
 }
 
 function renderVc() {
@@ -892,7 +853,7 @@ function renderVc() {
   // which players hold a lord (or race) that this condition targets
   const holders = t => active.map((s, i) => ({ s, i }))
     .filter(({ s }) => s.lord && s.lord !== name && (s.lord === t || BY_NAME[s.lord].race === t))
-    .map(({ i }) => `P${i + 1}`);
+    .map(({ i }) => whoHtml(i));
   const block = ([k, label]) => {
     const lines = (v?.[k]?.text || []).filter(Boolean);
     const targets = v?.[k]?.destroy || [];
@@ -902,7 +863,7 @@ function renderVc() {
     }).join("");
     return `<div class="vc-block"><h3>${label}</h3>
       ${lines.length ? `<ul>${lines.map(t => `<li>${esc(t)}</li>`).join("")}</ul>` : `<p class="muted">Not entered yet.</p>`}
-      ${targets.length ? `<p class="targets">Must destroy: ${targetHtml}</p>` : ""}
+        ${targets.length ? `<p class="targets"><span class="must">Must destroy:</span> ${targetHtml}</p>` : ""}
     </div>`;
   };
   el.innerHTML = `
@@ -1068,6 +1029,7 @@ document.addEventListener("click", e => {
   if (!b) return;
   const i = +b.dataset.i;
   if (b.dataset.act === "vc-close") { previewLord = null; renderVc(); }
+  if (b.dataset.act === "clear-card") { state.current = null; save(); renderAll(); }
   if (b.dataset.act === "change") {
     editing.add(i); renderSlots();
     document.querySelector(`.choose[data-i="${i}"]`)?.focus();
@@ -1079,7 +1041,12 @@ document.addEventListener("click", e => {
 });
 
 document.addEventListener("input", e => {
-  if (e.target.matches(".pname")) { state.slots[+e.target.dataset.i].name = e.target.value; save(); }
+  if (e.target.matches(".pname")) {
+    const i = +e.target.dataset.i;
+    state.slots[i].name = e.target.value; save();
+    document.querySelectorAll(`.pl[data-p="${i}"]`).forEach(el => el.textContent = who(i));
+    renderMap();
+  }
 });
 document.addEventListener("change", e => {
   const t = e.target;
@@ -1113,14 +1080,25 @@ $("#uniqueRace").addEventListener("change", e => { state.uniqueRace = e.target.c
 
 // DLC dropdown
 const dlcBtn = $("#dlcBtn"), dlcPanel = $("#dlcPanel");
-function setDlcOpen(open) { dlcPanel.hidden = !open; dlcBtn.setAttribute("aria-expanded", open); }
+const poolBtn = $("#poolBtn"), poolPanel = $("#poolPanel");
+function setDlcOpen(open) {
+  dlcPanel.hidden = !open; dlcBtn.setAttribute("aria-expanded", open);
+  if (open) setPoolOpen(false);
+}
+function setPoolOpen(open) {
+  poolPanel.hidden = !open; poolBtn.setAttribute("aria-expanded", open);
+  if (open) { setDlcOpen(false); renderPool(); }
+}
 dlcBtn.addEventListener("click", () => setDlcOpen(dlcPanel.hidden));
+poolBtn.addEventListener("click", () => setPoolOpen(poolPanel.hidden));
 document.addEventListener("click", e => {
-  if (!dlcPanel.hidden && !e.target.closest(".dlc")) setDlcOpen(false);
+  if (!dlcPanel.hidden && !e.target.closest("#dlcPanel, #dlcBtn")) setDlcOpen(false);
+  if (!poolPanel.hidden && !e.target.closest("#poolPanel, #poolBtn")) setPoolOpen(false);
 });
 document.addEventListener("keydown", e => {
   if ((e.key === "Enter" || e.key === " ") && e.target.matches(".faction, .mark")) { e.preventDefault(); e.target.dispatchEvent(new MouseEvent("click", { bubbles: true })); }
   if (e.key === "Escape" && !dlcPanel.hidden) { setDlcOpen(false); dlcBtn.focus(); }
+  if (e.key === "Escape" && !poolPanel.hidden) { setPoolOpen(false); poolBtn.focus(); }
 });
 dlcPanel.addEventListener("click", e => {
   const b = e.target.closest("[data-dlc]");
@@ -1179,18 +1157,6 @@ function endDrag(e, cancelled) {
 }
 document.addEventListener("pointerup", e => endDrag(e, false));
 document.addEventListener("pointercancel", e => endDrag(e, true));
-
-$("#pickToggle").addEventListener("click", () => setPicking(!picking));
-$("#pickLord").addEventListener("change", e => { pickName = e.target.value; renderMap(); });
-$("#pickMissing").addEventListener("change", renderPicker);
-$("#pickCopy").addEventListener("click", () => copyText(startsFile(), () => {
-  $("#pickStatus").textContent = "Copied";
-  setTimeout(() => $("#pickStatus").textContent = "", 2000);
-}));
-$("#pickClear").addEventListener("click", () => {
-  if (!Object.keys(state.picks).length || !confirm("Discard positions picked in this browser? Anything already saved in starts.js stays.")) return;
-  state.picks = {}; save(); renderPicker(); renderMap();
-});
 
 /* Go */
 initMap();
