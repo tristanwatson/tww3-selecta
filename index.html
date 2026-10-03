@@ -545,18 +545,26 @@ const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 /* Victory conditions live in conditions.js (window.VICTORY).
    Typos show up as warnings in the browser console (F12). */
 const VICTORY = window.VICTORY || {};
+/* destroy targets can be a lord ("Karl Franz"), a faction as the game names it ("Reikland"),
+   or a whole race ("Dwarfs"). Faction names are matched ignoring upper/lower case. */
+const FACTION_KEY = Object.fromEntries(LORDS.filter(l => l.faction).map(l => [l.faction.toLowerCase(), l.faction]));
+const isFaction = t => !!FACTION_KEY[String(t).toLowerCase()];
+const sameFaction = (lord, t) => !!BY_NAME[lord].faction && BY_NAME[lord].faction.toLowerCase() === String(t).toLowerCase();
+/* How a target is shown: lords appear as their faction name, the way the game words it. */
+const targetLabel = t => BY_NAME[t] ? (BY_NAME[t].faction || t) : (FACTION_KEY[String(t).toLowerCase()] || t);
+const targetLords = t => BY_NAME[t] ? [t] : LORDS.filter(l => sameFaction(l.lord, t) || l.race === t).map(l => l.lord);
 const KINDS = [["short", "Short victory"], ["long", "Long victory"]];
 for (const [lord, v] of Object.entries(VICTORY)) {
   if (!BY_NAME[lord]) console.warn(`conditions.js: "${lord}" doesn't match any lord name in index.html`);
   for (const [k] of KINDS) for (const t of (v[k]?.destroy || []))
-    if (!BY_NAME[t] && !RACES[t]) console.warn(`conditions.js: ${lord} (${k}) target "${t}" isn't a lord or race name`);
+    if (!BY_NAME[t] && !RACES[t] && !isFaction(t)) console.warn(`conditions.js: ${lord} (${k}) target "${t}" isn't a lord, faction or race name`);
 }
 const targetsOf = (lord, kind) => VICTORY[lord]?.[kind]?.destroy || [];
 
 /* Which of attacker's conditions (short/long) require destroying victim? A target can be a lord or a whole race. */
 function hitKinds(attacker, victim) {
   const race = BY_NAME[victim].race;
-  return KINDS.map(([k]) => k).filter(k => targetsOf(attacker, k).some(t => t === victim || t === race));
+  return KINDS.map(([k]) => k).filter(k => targetsOf(attacker, k).some(t => t === victim || t === race || sameFaction(victim, t)));
 }
 const kindLabel = ks => (ks.length === 2 ? "short and long" : ks[0]);
 
@@ -852,14 +860,15 @@ function renderVc() {
   const v = VICTORY[name];
   // which players hold a lord (or race) that this condition targets
   const holders = t => active.map((s, i) => ({ s, i }))
-    .filter(({ s }) => s.lord && s.lord !== name && (s.lord === t || BY_NAME[s.lord].race === t))
+    .filter(({ s }) => s.lord && s.lord !== name && (s.lord === t || BY_NAME[s.lord].race === t || sameFaction(s.lord, t)))
     .map(({ i }) => whoHtml(i));
   const block = ([k, label]) => {
     const lines = (v?.[k]?.text || []).filter(Boolean);
     const targets = v?.[k]?.destroy || [];
     const targetHtml = targets.map(t => {
       const h = holders(t);
-      return `<span class="target${h.length ? " live" : ""}">${esc(t)}${h.length ? ` <em>in play: ${h.join(", ")}</em>` : ""}</span>`;
+      const tip = RACES[t] ? `Every ${t} faction` : targetLords(t).join(", ");
+      return `<span class="target${h.length ? " live" : ""}" title="${esc(tip)}">${esc(targetLabel(t))}${h.length ? ` <em>in play: ${h.join(", ")}</em>` : ""}</span>`;
     }).join("");
     return `<div class="vc-block"><h3>${label}</h3>
       ${lines.length ? `<ul>${lines.map(t => `<li>${esc(t)}</li>`).join("")}</ul>` : `<p class="muted">Not entered yet.</p>`}
