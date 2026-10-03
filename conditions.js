@@ -53,7 +53,7 @@ window.VICTORY = {
       "Destroy One-Eye's Warherd and Festus (The Fecundites)",
       "Control Reikland province",
       "Occupy, sack or raze 30 settlements",
-    ], destroy: ["Khazrak One-Eye", "Festus the Leechlord"] },
+    ], destroy: ["Sylvania", "Festus the Leechlord"] },
     long:  { text: [
       "Achieve short victory",
       "Occupy, sack or raze 70 settlements",
