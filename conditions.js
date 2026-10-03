@@ -50,10 +50,8 @@ window.VICTORY = {
   },
   "Karl Franz": {
     short: { text: [
-      "Destroy One-Eye's Warherd and Festus (The Fecundites)",
-      "Control Reikland province",
-      "Occupy, sack or raze 30 settlements",
-    ], destroy: ["Sylvania", "Festus the Leechlord"] },
+      "Use 4 unique Emperor's Decrees",
+    ], destroy: ["The Barrow Legion", "Sylvania", "The Fecundites"] },
     long:  { text: [
       "Achieve short victory",
       "Occupy, sack or raze 70 settlements",
