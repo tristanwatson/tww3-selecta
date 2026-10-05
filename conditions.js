@@ -22,13 +22,19 @@ window.VICTORY = {
   // The Empire
   "Elspeth von Draken": {
     short: { text: [
-      "Defeat Tamurkhan and local Vampire Counts factions",
-      "Construct Nuln Gunnery School upgrades",
-      "Occupy, sack or raze 30 settlements",
-    ], destroy: ["Tamurkhan"] },
+      "Upgrade to Tier 3 Laboratorium Magi in Imperial Gunnery School",
+		"Upgrade units in the Imperial Armoury 10 times",
+		"Purchase 2 Amethyst Outriders",
+      "Construct landmark Nuln Cannon Foundry in Nuln",
+		"Construct 2 Gardens of Morr",
+    ], destroy: ["Sylvania", "The Fecundites"] },
     long:  { text: [
-      "Occupy, sack or raze 70 settlements",
-      "Direct or allied control: Nuln, Castle Drakenhof, Zanbaijin",
+		      "Upgrade to Tier 4 Academy of Excellence in Imperial Gunnery School",
+		      "Attain 100 Imperial Authority",
+		"Recruit 3 Amethyst Helstorm Rocket Battery units and increase them to Rank 9",
+		"Construct landmark Nuln Gunnery School in Nuln",
+		"Upgrade Amethyst units in the Amethyst Armoury 6 times",
+		"Construct 5 Gardens of Morr",
     ], destroy: [] },
   },
   "Boris Todbringer": {
@@ -55,15 +61,14 @@ window.VICTORY = {
   "Balthasar Gelt": {
     short: { text: [
       "Complete 12 Colleges of Magic Repeatable Actions",
-      "Perform a Single-Use Action from any of the Colleges of Magic",
-      "Recruit 2 Battle Wizards and increase them Rank 15",
-	  "Construct landmark Temple of Elemntal Winds",
+      "Perform a Single-Use Action",
+      "Recruit 2 Battle Wizards and increase them to Rank 15",
+	  "Construct landmark Temple of Elemental Winds",
     ], destroy: [] },
     long:  { text: [
       "Complete 24 Colleges of Magic Repeatable Actions",
-	  "Complete 5 Single-Use Actions from any of the Colleges of Magic",
+	  "Complete 5 Single-Use Actions",
       "Have 4 Battle Wizards at least Rank 20",
-      "Direct or allied control: Wei-Jin, Altdorf, Akendorf",
     ], destroy: [] },
   },
   "Volkmar the Grim": {
