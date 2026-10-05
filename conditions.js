@@ -51,11 +51,14 @@ window.VICTORY = {
   "Karl Franz": {
     short: { text: [
       "Use 4 unique Emperor's Decrees",
+      "Appoint Elector Counts to 3 different Seats",
+      "Recruit 5 Elector Count State Troops and increase them to rank 6",
+      "Construct landmark Castle Reikguard in Altdorf",
     ], destroy: ["The Barrow Legion", "Sylvania", "The Fecundites"] },
     long:  { text: [
-      "Achieve short victory",
-      "Occupy, sack or raze 70 settlements",
-      "Direct or allied control: Altdorf, Middenheim, Castle Drakenhof, Kislev",
+      "Maintain control of the 13 provinces of the Empire",
+      "Attain 100 Imperial Authority",
+      "Constuct landmarks Imperial Palace and Colleges of Magic in Altdorf",
     ], destroy: [] },
   },
   "Balthasar Gelt": {
