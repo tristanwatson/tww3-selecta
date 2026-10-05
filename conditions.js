@@ -27,7 +27,6 @@ window.VICTORY = {
       "Occupy, sack or raze 30 settlements",
     ], destroy: ["Tamurkhan"] },
     long:  { text: [
-      "Achieve short victory",
       "Occupy, sack or raze 70 settlements",
       "Direct or allied control: Nuln, Castle Drakenhof, Zanbaijin",
     ], destroy: [] },
@@ -37,22 +36,14 @@ window.VICTORY = {
     long:  { text: [], destroy: [] },
   },
   "Markus Wulfhart": {
-    short: { text: [
-      "Defeat local Lizardmen factions (Hexoatl, Itza)",
-      "Reach maximum Hostility / Imperial Supplies level",
-      "Occupy, sack or raze 30 settlements",
-    ], destroy: ["Lord Mazdamundi", "Gor-Rok"] },
-    long:  { text: [
-      "Achieve short victory",
-      "Occupy, sack or raze 70 settlements",
-      "Direct or allied control: Hexoatl, Itza, Awakening, Altdorf",
-    ], destroy: [] },
+	short: { text: [], destroy: [] },
+    long:  { text: [], destroy: [] },
   },
   "Karl Franz": {
     short: { text: [
       "Use 4 unique Emperor's Decrees",
       "Appoint Elector Counts to 3 different Seats",
-      "Recruit 5 Elector Count State Troops and increase them to rank 6",
+      "Recruit 5 Elector Count State Troops and increase them to Rank 6",
       "Construct landmark Castle Reikguard in Altdorf",
     ], destroy: ["The Barrow Legion", "Sylvania", "The Fecundites"] },
     long:  { text: [
@@ -63,27 +54,21 @@ window.VICTORY = {
   },
   "Balthasar Gelt": {
     short: { text: [
-      "Destroy starting local threats and Greenskins",
-      "Control home province",
-      "Occupy, sack or raze 30 settlements",
+      "Complete 12 Colleges of Magic Repeatable Actions",
+      "Perform a Single-Use Action from any of the Colleges of Magic",
+      "Recruit 2 Battle Wizards and increase them Rank 15",
+	  "Construct landmark Temple of Elemntal Winds",
     ], destroy: [] },
     long:  { text: [
-      "Achieve short victory",
-      "Occupy, sack or raze 70 settlements",
+      "Complete 24 Colleges of Magic Repeatable Actions",
+	  "Complete 5 Single-Use Actions from any of the Colleges of Magic",
+      "Have 4 Battle Wizards at least Rank 20",
       "Direct or allied control: Wei-Jin, Altdorf, Akendorf",
     ], destroy: [] },
   },
   "Volkmar the Grim": {
-    short: { text: [
-      "Destroy local Tomb Kings and Mannfred von Carstein",
-      "Collect 4 Books of Nagash",
-      "Occupy, sack or raze 30 settlements",
-    ], destroy: ["Mannfred von Carstein"] },
-    long:  { text: [
-      "Achieve short victory",
-      "Occupy, sack or raze 70 settlements",
-      "Control Khemri, Castle Drakenhof and Altdorf",
-    ], destroy: [] },
+	short: { text: [], destroy: [] },
+    long:  { text: [], destroy: [] },
   },
 
   // Dwarfs
